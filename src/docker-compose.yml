@@ -1,0 +1,61 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sourcing-ia-api
+    ports:
+      - "8000:8000"
+    environment:
+      # Les deux services pointent vers le même fichier de suivi MLflow,
+      # partagé via le volume nommé `mlflow_data` défini plus bas.
+      - MLFLOW_TRACKING_URI=sqlite:////data/mlflow.db
+      # Durée de conservation du journal des requêtes (art. 5.1.e RGPD) : purge au démarrage.
+      - RETENTION_JOURNAL_JOURS=365
+      # Journal des requêtes et retours conseillers dans un RÉPERTOIRE dédié, monté comme
+      # volume nommé. Monter directement ces deux FICHIERS en bind-mount cassait le démarrage
+      # sur un dépôt fraîchement cloné : ils sont ignorés par Git, donc absents, et Docker
+      # crée alors un répertoire à leur place — que l'API ne peut pas ouvrir en écriture.
+      - FICHIER_JOURNAL=/app/donnees/journal_requetes.jsonl
+      - FICHIER_FEEDBACK=/app/donnees/feedback_reentrainement.jsonl
+      # Décommenter pour activer l'authentification et restreindre CORS.
+      # En production ces valeurs viennent d'un gestionnaire de secrets, jamais du dépôt.
+      # - CLE_API=${CLE_API}
+      # - CLE_ADMIN=${CLE_ADMIN}
+      # - ORIGINES_AUTORISEES=https://guichet-unique.agence.fr
+    volumes:
+      - mlflow_data:/data
+      - journal_data:/app/donnees
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  mlflow:
+    image: python:3.12-slim
+    container_name: sourcing-ia-mlflow
+    working_dir: /data
+    volumes:
+      - mlflow_data:/data
+    ports:
+      - "5000:5000"
+    command: >
+      sh -c "pip install --no-cache-dir mlflow==3.15.2 'anyio<4' &&
+             mlflow ui --backend-store-uri sqlite:////data/mlflow.db --host 0.0.0.0 --port 5000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  # Volume nommé plutôt qu'un simple fichier monté : plus robuste pour une base SQLite
+  # partagée entre deux conteneurs. Au premier démarrage, Docker copie dans le volume le
+  # contenu déjà présent dans l'image `api` (le mlflow.db généré à la construction par
+  # entrainer_modele.py), en conservant le propriétaire défini dans l'image.
+  mlflow_data:
+  # Même mécanisme pour le journal des requêtes et les retours conseillers : le répertoire
+  # /app/donnees est créé dans l'image et détenu par l'utilisateur `service`, donc le volume
+  # est inscriptible par l'API, qui ne tourne pas en root.
+  journal_data:

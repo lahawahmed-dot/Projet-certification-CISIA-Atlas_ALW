@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guichet unique — Évaluation du risque de retour à l'emploi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bleu-france:#000091;
+    --bleu-clair:#ECECFE;
+    --bleu-fonce:#00006B;
+    --rouge-marianne:#C9191E;
+    --rouge-clair:#FDEDED;
+    --orange:#B34000;
+    --orange-clair:#FDF0E5;
+    --vert:#18753C;
+    --vert-clair:#E7F6EC;
+    --fond:#F6F6F6;
+    --carte:#FFFFFF;
+    --texte:#1E1E1E;
+    --texte-mute:#5D5D5D;
+    --bordure:#DDDDDD;
+    --rayon:4px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--fond);
+    color:var(--texte);
+    line-height:1.5;
+  }
+  h1,h2,h3{
+    font-family:'Source Serif 4',Georgia,serif;
+    font-weight:600;
+    margin:0 0 4px 0;
+  }
+  .barre{
+    background:var(--bleu-france);
+    color:#fff;
+    padding:14px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .barre h1{color:#fff;font-size:1.25rem;}
+  .barre p{margin:0;font-size:0.8rem;color:#C7C7FB;}
+  .statut{
+    display:flex;align-items:center;gap:8px;
+    font-size:0.82rem;
+    background:rgba(255,255,255,0.08);
+    padding:6px 12px;
+    border-radius:999px;
+  }
+  .point{width:9px;height:9px;border-radius:50%;background:#999;flex-shrink:0;}
+  .point.ok{background:#4CD37A;}
+  .point.ko{background:#FF6B6B;}
+
+  main{
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px;
+    display:grid;
+    grid-template-columns:minmax(300px,380px) 1fr;
+    gap:24px;
+    align-items:start;
+  }
+  @media (max-width:860px){
+    main{grid-template-columns:1fr;}
+  }
+
+  .carte{
+    background:var(--carte);
+    border:1px solid var(--bordure);
+    border-radius:var(--rayon);
+    padding:22px;
+  }
+  .carte + .carte{margin-top:20px;}
+
+  fieldset{border:none;padding:0;margin:0 0 16px 0;}
+  label{
+    display:block;
+    font-size:0.82rem;
+    font-weight:600;
+    margin-bottom:5px;
+    color:var(--texte);
+  }
+  .optionnel{font-weight:400;color:var(--texte-mute);}
+  input,select,textarea{
+    width:100%;
+    padding:9px 11px;
+    border:1px solid var(--bordure);
+    border-radius:var(--rayon);
+    font-family:inherit;
+    font-size:0.92rem;
+    background:#fff;
+    color:var(--texte);
+  }
+  input:focus,select:focus,textarea:focus{
+    outline:2px solid var(--bleu-france);
+    outline-offset:1px;
+    border-color:var(--bleu-france);
+  }
+  textarea{resize:vertical;min-height:70px;}
+  .champ{margin-bottom:14px;}
+  .aide{font-size:0.76rem;color:var(--texte-mute);margin-top:3px;}
+
+  button{
+    font-family:inherit;
+    font-size:0.92rem;
+    font-weight:600;
+    border-radius:var(--rayon);
+    padding:11px 18px;
+    border:none;
+    cursor:pointer;
+  }
+  .bouton-principal{
+    background:var(--bleu-france);
+    color:#fff;
+    width:100%;
+  }
+  .bouton-principal:hover{background:var(--bleu-fonce);}
+  .bouton-principal:disabled{background:#9A9AC7;cursor:wait;}
+  .bouton-secondaire{
+    background:#fff;
+    color:var(--bleu-france);
+    border:1px solid var(--bleu-france);
+  }
+  .bouton-secondaire:hover{background:var(--bleu-clair);}
+
+  .vide{
+    color:var(--texte-mute);
+    font-size:0.88rem;
+    padding:20px 4px;
+  }
+
+  .resultat-classe{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 16px;
+    border-radius:var(--rayon);
+    margin-bottom:14px;
+  }
+  .resultat-classe .pastille{
+    width:38px;height:38px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Source Serif 4',serif;font-weight:700;font-size:1.1rem;
+    color:#fff;flex-shrink:0;
+  }
+  .resultat-classe .libelle{font-weight:600;font-size:1.02rem;}
+  .resultat-classe .sous-libelle{font-size:0.8rem;color:var(--texte-mute);}
+  .classe-0{background:var(--vert-clair);} .classe-0 .pastille{background:var(--vert);}
+  .classe-1{background:var(--orange-clair);} .classe-1 .pastille{background:var(--orange);}
+  .classe-2{background:var(--rouge-clair);} .classe-2 .pastille{background:var(--rouge-marianne);}
+
+  .barre-proba{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:0.82rem;}
+  .barre-proba .nom{width:110px;flex-shrink:0;color:var(--texte-mute);}
+  .barre-proba .piste{flex:1;background:#EEEEEE;border-radius:99px;height:8px;overflow:hidden;}
+  .barre-proba .remplissage{height:100%;border-radius:99px;}
+  .barre-proba .valeur{width:42px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
+
+  .avertissement{
+    display:flex;gap:9px;
+    background:var(--bleu-clair);
+    border-left:3px solid var(--bleu-france);
+    padding:10px 12px;
+    border-radius:var(--rayon);
+    font-size:0.8rem;
+    color:var(--bleu-fonce);
+    margin-top:14px;
+  }
+  .alerte-donnee{
+    display:flex;gap:9px;
+    background:var(--rouge-clair);
+    border-left:3px solid var(--rouge-marianne);
+    padding:10px 12px;
+    border-radius:var(--rayon);
+    font-size:0.8rem;
+    color:#7A1114;
+    margin-bottom:14px;
+  }
+
+  .feedback{
+    margin-top:16px;
+    padding-top:16px;
+    border-top:1px solid var(--bordure);
+  }
+  .feedback .ligne{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+  .feedback select{width:auto;min-width:180px;}
+  .confirmation-feedback{
+    margin-top:10px;
+    font-size:0.82rem;
+    color:var(--vert);
+    font-weight:600;
+  }
+
+  .erreur{
+    background:var(--rouge-clair);
+    border-left:3px solid var(--rouge-marianne);
+    color:#7A1114;
+    padding:12px 14px;
+    border-radius:var(--rayon);
+    font-size:0.86rem;
+  }
+  .erreur strong{display:block;margin-bottom:3px;}
+
+  table{width:100%;border-collapse:collapse;font-size:0.84rem;}
+  th{
+    text-align:left;color:var(--texte-mute);
+    font-weight:600;font-size:0.74rem;
+    text-transform:uppercase;letter-spacing:0.03em;
+    padding:0 10px 8px 10px;
+    border-bottom:1px solid var(--bordure);
+  }
+  td{padding:10px;border-bottom:1px solid #EFEFEF;vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .badge-mini{
+    display:inline-flex;align-items:center;gap:5px;
+    font-weight:600;font-size:0.78rem;
+  }
+  .pastille-mini{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .pastille-mini.c0{background:var(--vert);}
+  .pastille-mini.c1{background:var(--orange);}
+  .pastille-mini.c2{background:var(--rouge-marianne);}
+  .traite{color:var(--vert);font-size:0.78rem;}
+  .non-traite{color:var(--texte-mute);font-size:0.78rem;}
+
+  .pied-config{
+    max-width:1180px;margin:0 auto;padding:0 28px 28px 28px;
+    font-size:0.76rem;color:var(--texte-mute);
+  }
+  .pied-config a{color:var(--bleu-france);}
+</style>
+</head>
+<body>
+
+<div class="barre">
+  <div>
+    <h1>Guichet unique</h1>
+    <p>Évaluation du risque de retour à l'emploi</p>
+  </div>
+  <div class="statut" id="statut-api">
+    <span class="point" id="point-api"></span>
+    <span id="texte-statut-api">Connexion à l'API…</span>
+  </div>
+</div>
+
+<main>
+  <!-- Colonne gauche : formulaire -->
+  <div class="carte">
+    <h2 style="font-size:1.05rem;margin-bottom:2px;">Informations usager</h2>
+    <p class="aide" style="margin-bottom:18px;">Champs recueillis lors de l'entretien de cadrage.</p>
+
+    <form id="formulaire">
+      <div class="champ">
+        <label for="age">Âge <span class="optionnel">(optionnel)</span></label>
+        <input type="number" id="age" min="16" max="100" placeholder="ex. 42">
+      </div>
+
+      <div class="champ">
+        <label for="niveau_diplome">Niveau de diplôme <span class="optionnel">(optionnel)</span></label>
+        <select id="niveau_diplome">
+          <option value="">— Non renseigné —</option>
+          <option value="Sans diplôme">Sans diplôme</option>
+          <option value="Bac">Bac</option>
+          <option value="Bac+2">Bac+2</option>
+          <option value="Bac+5">Bac+5</option>
+        </select>
+      </div>
+
+      <div class="champ">
+        <label for="date_debut_poste">Date de début du poste actuel</label>
+        <input type="date" id="date_debut_poste" required>
+        <div class="aide">L'ancienneté est calculée automatiquement par rapport à aujourd'hui.</div>
+      </div>
+
+      <div class="champ">
+        <label for="code_rome_vise">Code ROME visé</label>
+        <input type="text" id="code_rome_vise" pattern="[A-Z][0-9]{4}" maxlength="5" required placeholder="ex. M1607" style="text-transform:uppercase;">
+        <div class="aide">1 lettre majuscule + 4 chiffres</div>
+      </div>
+
+      <div class="champ">
+        <label for="code_insee_commune">Code INSEE de la commune</label>
+        <input type="text" id="code_insee_commune" maxlength="5" minlength="5" required placeholder="ex. 07240 ou 2B033">
+      </div>
+
+      <div class="champ">
+        <label for="est_allocataire">Statut allocataire <span class="optionnel">(optionnel)</span></label>
+        <select id="est_allocataire">
+          <option value="">— Non renseigné —</option>
+          <option value="1">Oui</option>
+          <option value="0">Non</option>
+        </select>
+      </div>
+
+      <div class="champ">
+        <label for="synthese_entretien">Synthèse de l'entretien <span class="optionnel">(optionnel)</span></label>
+        <textarea id="synthese_entretien" placeholder="Notes libres du conseiller…"></textarea>
+      </div>
+
+      <button type="submit" class="bouton-principal" id="bouton-predire">Prédire</button>
+    </form>
+  </div>
+
+  <!-- Colonne droite : résultat + historique -->
+  <div>
+    <div class="carte">
+      <h2 style="font-size:1.05rem;">Résultat de la prédiction</h2>
+      <div id="zone-resultat">
+        <p class="vide">Renseignez le formulaire et cliquez sur « Prédire » pour voir apparaître une évaluation ici.</p>
+      </div>
+    </div>
+
+    <div class="carte">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;">
+        <h2 style="font-size:1.05rem;">Historique des évaluations</h2>
+        <a href="#" id="lien-vider-historique" style="font-size:0.78rem;color:var(--texte-mute);">Vider l'historique</a>
+      </div>
+      <div id="zone-historique">
+        <p class="vide">Aucune évaluation pour l'instant.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<p class="pied-config">
+  API interrogée : <code id="affiche-url-api">http://localhost:8000</code> —
+  <a href="#" id="lien-changer-url">changer l'adresse</a> —
+  <a href="#" id="lien-cle-api">renseigner la clé d'API</a> (si le déploiement est authentifié).
+  L'historique ci-dessus est conservé dans ce navigateur (stockage local) et survit à un rechargement de la
+  page — mais uniquement sur ce poste : il n'est ni partagé entre conseillers, ni envoyé à l'API.
+  La trace complète, durable et commune à tous les postes reste journalisée côté API (voir
+  <code>journal_requetes.jsonl</code>). Utilisez « Vider l'historique » pour l'effacer de ce navigateur.
+</p>
+
+<script>
+const LIBELLES_CLASSE = {
+  0: {texte: "Retour rapide", sous: "< 6 mois", classe: "classe-0", couleur: "#18753C"},
+  1: {texte: "Retour moyen", sous: "6 à 12 mois", classe: "classe-1", couleur: "#B34000"},
+  2: {texte: "Risque de longue durée", sous: "> 12 mois", classe: "classe-2", couleur: "#C9191E"},
+};
+
+let URL_API = "http://localhost:8000";
+let CLE_API = ""; // renseignée via le pied de page si l'API est déployée avec authentification
+
+// En-têtes envoyés à l'API : la clé de service n'est ajoutée que si elle est renseignée,
+// pour que la démonstration fonctionne sans authentification comme avec.
+function entetes(json = false) {
+  const h = json ? {"Content-Type": "application/json"} : {};
+  if (CLE_API) h["X-Cle-Api"] = CLE_API;
+  return h;
+}
+// Historique persistant dans ce navigateur (localStorage), sur ce poste uniquement — voir
+// note en pied de page. Toutes les opérations de stockage sont protégées par try/catch :
+// si le stockage local est indisponible (navigation privée stricte, certains contextes de
+// prévisualisation), la page continue de fonctionner avec un historique simplement non
+// persistant, plutôt que de planter.
+const CLE_STOCKAGE_HISTORIQUE = "guichet_historique_predictions_v1";
+const MAX_ENTREES_HISTORIQUE = 100; // borne volontaire, même logique que RETENTION_JOURNAL_JOURS côté API
+
+function chargerHistorique() {
+  try {
+    const brut = localStorage.getItem(CLE_STOCKAGE_HISTORIQUE);
+    return brut ? JSON.parse(brut) : [];
+  } catch {
+    return [];
+  }
+}
+
+function sauvegarderHistorique() {
+  try {
+    const borne = historique.slice(-MAX_ENTREES_HISTORIQUE);
+    localStorage.setItem(CLE_STOCKAGE_HISTORIQUE, JSON.stringify(borne));
+  } catch {
+    // Stockage plein ou indisponible : l'historique reste utilisable pour cette page,
+    // simplement il ne survivra pas à un rechargement.
+  }
+}
+
+function viderHistorique() {
+  historique.length = 0;
+  try { localStorage.removeItem(CLE_STOCKAGE_HISTORIQUE); } catch {}
+  dessinerHistorique();
+}
+
+let historique = chargerHistorique();
+
+const $ = (id) => document.getElementById(id);
+
+function echapper(texte) {
+  const div = document.createElement("div");
+  div.textContent = texte ?? "";
+  return div.innerHTML;
+}
+
+async function verifierSante() {
+  const point = $("point-api");
+  const texte = $("texte-statut-api");
+  try {
+    const r = await fetch(`${URL_API}/health`, {headers: entetes(), signal: AbortSignal.timeout(3000)});
+    const data = await r.json();
+    if (r.status === 401) {
+      point.className = "point ko";
+      texte.textContent = "API protégée — clé requise";
+      return;
+    }
+    if (r.ok && data.modele_charge) {
+      point.className = "point ok";
+      const sec = data.authentification_active ? "authentifiée" : "ouverte";
+      texte.textContent = `API connectée — ${data.version_modele ?? "modèle actif"} · ${sec}`;
+    } else {
+      point.className = "point ko";
+      texte.textContent = "API jointe, mais modèle non chargé";
+    }
+  } catch {
+    point.className = "point ko";
+    texte.textContent = "API injoignable";
+  }
+}
+
+function construireCharge() {
+  const charge = {
+    date_debut_poste: $("date_debut_poste").value,
+    code_rome_vise: $("code_rome_vise").value.trim().toUpperCase(),
+    code_insee_commune: $("code_insee_commune").value.trim(),
+    synthese_entretien: $("synthese_entretien").value.trim(),
+  };
+  const age = $("age").value;
+  if (age !== "") charge.age = parseFloat(age);
+  const diplome = $("niveau_diplome").value;
+  if (diplome !== "") charge.niveau_diplome = diplome;
+  const allocataire = $("est_allocataire").value;
+  if (allocataire !== "") charge.est_allocataire = parseInt(allocataire, 10);
+  return charge;
+}
+
+function afficherErreur(cible, titre, detail) {
+  cible.innerHTML = `
+    <div class="erreur">
+      <strong>${echapper(titre)}</strong>
+      ${echapper(detail)}
+    </div>`;
+}
+
+function barreProba(nom, valeur, couleur) {
+  const pct = Math.round(valeur * 100);
+  return `
+    <div class="barre-proba">
+      <span class="nom">${nom}</span>
+      <div class="piste"><div class="remplissage" style="width:${pct}%;background:${couleur};"></div></div>
+      <span class="valeur">${pct}%</span>
+    </div>`;
+}
+
+function alertesDonnees(sortie) {
+  if (!sortie.avertissements || sortie.avertissements.length === 0) return "";
+  return sortie.avertissements
+    .map((msg) => `<div class="alerte-donnee"><span>🚩</span><span>${echapper(msg)}</span></div>`)
+    .join("");
+}
+
+function afficherResultat(sortie) {
+  const info = LIBELLES_CLASSE[sortie.classe_predite];
+  const p = sortie.probabilites;
+
+  // Le session_id peut provenir de l'appelant : l'architecture cible prévoit que le guichet
+  // unique le fournisse, et l'API l'accepte dans son schéma d'entrée. On ne l'utilise donc
+  // jamais tel quel dans un identifiant d'élément ni dans un attribut onclick — un caractère
+  // de ponctuation y casserait la page. On en dérive un jeton sûr, et on conserve la valeur
+  // d'origine uniquement pour l'appel réseau (voir envoyerFeedback).
+  const jeton = String(sortie.session_id).replace(/[^A-Za-z0-9_-]/g, "");
+
+  $("zone-resultat").innerHTML = `
+    ${alertesDonnees(sortie)}
+    <div class="resultat-classe ${info.classe}">
+      <div class="pastille">${sortie.classe_predite}</div>
+      <div>
+        <div class="libelle">${info.texte}</div>
+        <div class="sous-libelle">${info.sous} · ancienneté calculée : ${echapper(String(sortie.anciennete_calculee_ans))} an(s) · session ${echapper(String(sortie.session_id).slice(0, 8))}</div>
+      </div>
+    </div>
+    ${barreProba("0 — Rapide", p["0_rapide"], "#18753C")}
+    ${barreProba("1 — Moyen", p["1_moyen"], "#B34000")}
+    ${barreProba("2 — Longue durée", p["2_longue_duree"], "#C9191E")}
+    <div class="avertissement">
+      <span>⚠</span>
+      <span>Aide à la décision uniquement — la décision finale d'orientation revient au conseiller.</span>
+    </div>
+    <div class="feedback" id="bloc-feedback-${jeton}">
+      <label for="observe-${jeton}">Une fois le parcours connu, enregistrer le résultat réellement observé :</label>
+      <div class="ligne">
+        <select id="observe-${jeton}">
+          <option value="0">0 — Retour rapide</option>
+          <option value="1">1 — Retour moyen</option>
+          <option value="2">2 — Longue durée</option>
+        </select>
+        <button type="button" class="bouton-secondaire" onclick="envoyerFeedback('${jeton}')">Enregistrer</button>
+      </div>
+    </div>
+  `;
+}
+
+async function envoyerFeedback(jeton) {
+  // `jeton` est la forme assainie de l'identifiant de session (voir afficherResultat) :
+  // on retrouve la valeur réelle dans l'historique pour la transmettre à l'API.
+  const entreeHistorique = historique.find(
+    (h) => String(h.session_id).replace(/[^A-Za-z0-9_-]/g, "") === jeton);
+  const sessionId = entreeHistorique ? entreeHistorique.session_id : jeton;
+  const bloc = $(`bloc-feedback-${jeton}`);
+  const classeObservee = parseInt($(`observe-${jeton}`).value, 10);
+  try {
+    const r = await fetch(`${URL_API}/retrain`, {
+      method: "POST",
+      headers: entetes(true),
+      body: JSON.stringify({session_id: sessionId, classe_reelle_observee: classeObservee}),
+    });
+    if (!r.ok) throw new Error("Réponse API : " + r.status);
+    bloc.querySelector(".ligne").insertAdjacentHTML(
+      "afterend",
+      `<div class="confirmation-feedback">✓ Résultat enregistré pour le ré-entraînement supervisé.</div>`
+    );
+    if (entreeHistorique) entreeHistorique.feedback = true;
+    sauvegarderHistorique();
+    dessinerHistorique();
+  } catch (err) {
+    bloc.querySelector(".ligne").insertAdjacentHTML(
+      "afterend",
+      `<div class="erreur" style="margin-top:8px;"><strong>Échec de l'enregistrement</strong>${echapper(err.message)}</div>`
+    );
+  }
+}
+
+function dessinerHistorique() {
+  const zone = $("zone-historique");
+  if (historique.length === 0) {
+    zone.innerHTML = `<p class="vide">Aucune évaluation pour l'instant.</p>`;
+    return;
+  }
+  const lignes = historique
+    .slice()
+    .reverse()
+    .map((h) => {
+      const info = LIBELLES_CLASSE[h.classe_predite];
+      return `
+        <tr>
+          <td>${h.heure}</td>
+          <td><span class="badge-mini"><span class="pastille-mini c${h.classe_predite}"></span>${info.texte}</span></td>
+          <td>${h.duree_ms} ms</td>
+          <td>${h.feedback ? '<span class="traite">Résultat enregistré</span>' : '<span class="non-traite">En attente</span>'}</td>
+        </tr>`;
+    })
+    .join("");
+  zone.innerHTML = `
+    <table>
+      <thead><tr><th>Heure</th><th>Prédiction</th><th>Latence</th><th>Suivi</th></tr></thead>
+      <tbody>${lignes}</tbody>
+    </table>`;
+}
+
+$("formulaire").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const bouton = $("bouton-predire");
+  const zoneResultat = $("zone-resultat");
+  bouton.disabled = true;
+  bouton.textContent = "Calcul en cours…";
+
+  try {
+    const charge = construireCharge();
+    const r = await fetch(`${URL_API}/predict`, {
+      method: "POST",
+      headers: entetes(true),
+      body: JSON.stringify(charge),
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!r.ok) {
+      const detail = await r.json().catch(() => ({}));
+      const message = Array.isArray(detail.detail)
+        ? detail.detail.map((d) => `${d.loc?.at(-1) ?? ""} : ${d.msg}`).join(" · ")
+        : (detail.detail ?? `Code ${r.status}`);
+      afficherErreur(zoneResultat, "Données refusées par l'API", message);
+      return;
+    }
+
+    const sortie = await r.json();
+    afficherResultat(sortie);
+    historique.push({
+      session_id: sortie.session_id,
+      classe_predite: sortie.classe_predite,
+      duree_ms: sortie.duree_ms,
+      heure: new Date().toLocaleTimeString("fr-FR", {hour: "2-digit", minute: "2-digit", second: "2-digit"}),
+      feedback: false,
+    });
+    sauvegarderHistorique();
+    dessinerHistorique();
+  } catch (err) {
+    afficherErreur(
+      zoneResultat,
+      "Impossible de contacter l'API",
+      `Vérifiez qu'elle est bien lancée sur ${URL_API} (uvicorn api:app ou docker compose up). Détail : ${err.message}`
+    );
+  } finally {
+    bouton.disabled = false;
+    bouton.textContent = "Prédire";
+  }
+});
+
+$("lien-cle-api").addEventListener("click", (e) => {
+  e.preventDefault();
+  // Gardée en mémoire uniquement, jamais écrite sur le disque du poste conseiller.
+  const saisie = prompt("Clé de service (en-tête X-Cle-Api) :", CLE_API);
+  if (saisie !== null) { CLE_API = saisie.trim(); verifierSante(); }
+});
+
+$("lien-changer-url").addEventListener("click", (e) => {
+  e.preventDefault();
+  const nouvelle = prompt("Adresse de l'API :", URL_API);
+  if (nouvelle) {
+    URL_API = nouvelle.replace(/\/$/, "");
+    $("affiche-url-api").textContent = URL_API;
+    verifierSante();
+  }
+});
+
+$("lien-vider-historique").addEventListener("click", (e) => {
+  e.preventDefault();
+  if (confirm("Vider l'historique des évaluations affiché sur ce poste ? Cette action ne supprime rien côté API.")) {
+    viderHistorique();
+  }
+});
+
+verifierSante();
+setInterval(verifierSante, 15000);
+dessinerHistorique(); // affiche l'historique déjà présent dans ce navigateur, dès le chargement
+
+// Empêche de sélectionner une date de début de poste dans le futur, directement dans le
+// sélecteur — en plus (pas à la place) de la validation faite côté API.
+$("date_debut_poste").max = new Date().toISOString().split("T")[0];
+</script>
+
+</body>
+</html>

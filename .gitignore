@@ -1,0 +1,39 @@
+# Artefacts générés (régénérés par entrainer_modele.py)
+artefacts_modele/
+artefacts_candidat/
+mlruns/
+mlflow.db
+journal_requetes.jsonl
+feedback_reentrainement.jsonl
+
+# Jeu de données d'examen : VERSIONNÉ VOLONTAIREMENT, et c'est un choix à expliciter.
+# La chaîne CI/CD réentraîne le modèle à chaque exécution (étape « Entraîner le modèle »)
+# et a donc besoin du fichier ; le versionner est ce qui rend l'épreuve reproductible.
+#
+# En production, ce fichier n'aurait rien à faire ici : l'entraînement lirait le jeu depuis
+# le stockage objet authentifié décrit au § 9.1 ter du notebook, et le dépôt ne contiendrait
+# que du code. La garantie « aucune donnée personnelle » vérifiée par la CI porte sur
+# l'IMAGE D'INFÉRENCE PUBLIÉE, construite en deux étapes précisément pour cela — elle ne
+# porte pas sur le présent dépôt.
+
+
+# Secrets
+.env
+*.key
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+*.egg-info/
+
+# Environnement / IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+.virtual_documents/

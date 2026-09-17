@@ -1,0 +1,253 @@
+name: CI/CD - API prediction retour emploi
+
+# Le workflow doit etre place a la racine du depot :
+# .github/workflows/ci-cd.yml
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - ".github/workflows/ci-cd.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - ".github/workflows/ci-cd.yml"
+
+# Le code applicatif se trouve dans src/.
+# Toutes les commandes run s'executent donc depuis ce dossier par defaut.
+defaults:
+  run:
+    working-directory: src
+
+jobs:
+  test-et-lint:
+    name: Tests, lint et entrainement
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Verifier les fichiers indispensables
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          fichiers_obligatoires=(
+            "api.py"
+            "entrainer_modele.py"
+            "verifier_seuil_performance.py"
+            "Dockerfile"
+            "requirements.txt"
+            "requirements-dev.txt"
+            "tests/test_api.py"
+            "dataset_trajectoire_emploi.csv"
+          )
+
+          erreur=0
+          echo "Verification des fichiers indispensables..."
+
+          for fichier in "${fichiers_obligatoires[@]}"; do
+            if [ -f "$fichier" ]; then
+              echo "OK - $fichier"
+            else
+              echo "ERREUR - fichier absent : $fichier"
+              erreur=1
+            fi
+          done
+
+          if [ "$erreur" -ne 0 ]; then
+            echo "Le pipeline ne peut pas continuer."
+            exit 1
+          fi
+
+          if [ ! -s "dataset_trajectoire_emploi.csv" ]; then
+            echo "ERREUR - dataset_trajectoire_emploi.csv existe mais il est vide."
+            exit 1
+          fi
+
+          echo "OK - tous les fichiers indispensables sont presents."
+          echo "OK - le dataset existe et n'est pas vide."
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            src/requirements.txt
+            src/requirements-dev.txt
+
+      - name: Installer les dependances
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Compiler les fichiers Python
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m py_compile \
+            api.py \
+            entrainer_modele.py \
+            verifier_seuil_performance.py \
+            tests/test_api.py
+
+          echo "OK - compilation Python terminee sans erreur."
+
+      - name: Verifier les imports applicatifs
+        run: |
+          python -c "import api; import entrainer_modele; import verifier_seuil_performance"
+          echo "OK - imports applicatifs verifies."
+
+      # Le linting porte uniquement sur le code applicatif.
+      - name: Linting
+        run: ruff check .
+
+      - name: Entrainer le modele
+        run: python entrainer_modele.py
+
+      - name: Verifier les artefacts generes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -d "artefacts_modele" ]; then
+            echo "ERREUR - le dossier artefacts_modele n'a pas ete cree."
+            exit 1
+          fi
+
+          nombre_fichiers=$(find "artefacts_modele" -maxdepth 1 -type f | wc -l | tr -d ' ')
+
+          if [ "$nombre_fichiers" -eq 0 ]; then
+            echo "ERREUR - le dossier artefacts_modele existe mais il est vide."
+            exit 1
+          fi
+
+          echo "OK - le dossier artefacts_modele a ete genere."
+          echo "Nombre de fichiers produits : $nombre_fichiers"
+          echo "Liste des artefacts :"
+          find "artefacts_modele" -maxdepth 1 -type f -printf "%f\n" | sort
+
+      # Garde-fou challenger/champion : qualite et equite.
+      - name: Verifier les seuils de qualite et d'equite avant promotion
+        run: >-
+          python verifier_seuil_performance.py
+          --f1-macro-min 0.68
+          --erreur-critique-max 0.15
+          --ecart-rappel-max 0.15
+
+      - name: Executer les tests unitaires
+        run: pytest tests/ -v
+
+  build-image:
+    name: Construction et controle de l'image Docker
+    needs: test-et-lint
+    runs-on: ubuntu-latest
+
+    # Construction uniquement apres un push sur main, jamais sur une pull request.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Verifier les fichiers indispensables au build Docker
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          fichiers_obligatoires=(
+            "Dockerfile"
+            "api.py"
+            "requirements.txt"
+            "dataset_trajectoire_emploi.csv"
+            "entrainer_modele.py"
+          )
+
+          erreur=0
+          for fichier in "${fichiers_obligatoires[@]}"; do
+            if [ -f "$fichier" ]; then
+              echo "OK - $fichier"
+            else
+              echo "ERREUR - fichier absent pour le build Docker : $fichier"
+              erreur=1
+            fi
+          done
+
+          if [ "$erreur" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Construire l'image Docker
+        run: |
+          docker build \
+            -t "sourcing-ia-api:${{ github.sha }}" \
+            -t sourcing-ia-api:latest \
+            .
+
+      - name: Verifier que l'image demarre correctement
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          nettoyer() {
+            docker logs test-container 2>/dev/null || true
+            docker rm -f test-container 2>/dev/null || true
+          }
+          trap nettoyer EXIT
+
+          docker run -d \
+            --name test-container \
+            -p 8000:8000 \
+            sourcing-ia-api:latest
+
+          reponse_ok=0
+          for tentative in $(seq 1 30); do
+            if curl --fail --silent --show-error http://localhost:8000/health; then
+              reponse_ok=1
+              break
+            fi
+            echo "API non prete, tentative ${tentative}/30..."
+            sleep 2
+          done
+
+          if [ "$reponse_ok" -ne 1 ]; then
+            echo "ERREUR - l'API n'a pas repondu correctement sur /health."
+            exit 1
+          fi
+
+          echo "OK - l'image demarre et la route /health repond."
+
+      - name: Verifier que l'application ne contient aucun fichier de donnees
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Le controle porte sur /app, qui est le contenu applicatif publie.
+          # Cela evite les faux positifs provenant des jeux d'exemple inclus
+          # dans certaines bibliotheques Python sous /usr/local/lib.
+          trouves=$(docker run --rm --entrypoint sh sourcing-ia-api:latest -c \
+            "find /app -type f \( -name '*.csv' -o -name '*.parquet' -o -name '*.xlsx' \) -print 2>/dev/null")
+
+          if [ -n "$trouves" ]; then
+            echo "ERREUR - fichier(s) de donnees present(s) dans l'image d'inference :"
+            echo "$trouves"
+            exit 1
+          fi
+
+          echo "OK - aucun fichier CSV, Parquet ou Excel dans /app."
+
+      # Publication illustrative. Activer uniquement apres configuration
+      # des secrets REGISTRY_USER et REGISTRY_TOKEN.
+      # - name: Publier l'image sur le registre
+      #   working-directory: src
+      #   run: |
+      #     echo "${{ secrets.REGISTRY_TOKEN }}" | \
+      #       docker login registre-interne.agence.fr \
+      #       -u "${{ secrets.REGISTRY_USER }}" \
+      #       --password-stdin
+      #     docker push "sourcing-ia-api:${{ github.sha }}"

@@ -1,0 +1,10 @@
+# Tests et qualite de code
+pytest==9.1.1
+httpx==0.28.1
+ruff==0.16.7
+
+# Dependances utilisees uniquement par le Notebook d'analyse
+# Comparaison des modeles, graphiques et diagramme d'architecture
+lightgbm==4.7.0
+matplotlib==3.11.2
+graphviz==0.21
