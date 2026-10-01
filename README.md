@@ -1,6 +1,4 @@
-# Sourcing IA - API de prediction du risque de retour a l'emploi
-
-Projet realise dans le cadre de la certification Atlas CISIA, cas d'usage « Orientation et tri multimodal des demandeurs d'emploi par l'IA ».
+ API de prediction du risque de retour a l'emploi
 
 Le systeme predit, a partir des informations recueillies pendant un entretien de cadrage, la classe de retour a l'emploi d'un usager :
 
@@ -35,24 +33,18 @@ La classe majoritaire seule produirait une accuracy de 44,5 %.
 
 ```text
 .
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yml                    # Pipeline GitHub Actions
-├── src/
-│   ├── api.py                           # API FastAPI
-│   ├── entrainer_modele.py              # Entrainement du modele final
-│   ├── verifier_seuil_performance.py    # Garde-fou qualite et equite
-│   ├── interface.html                   # Interface graphique conseiller
-│   ├── dataset_trajectoire_emploi.csv   # Donnees d'examen necessaires a l'entrainement
-│   ├── requirements.txt                 # Dependances de production
-│   ├── requirements-dev.txt             # Tests, qualite et outils du Notebook
-│   ├── Dockerfile                       # Image multi-stage entrainement et inference
-│   ├── docker-compose.yml               # API et interface MLflow
-│   └── tests/
-│       └── test_api.py                  # Tests automatises de l'API
-├── certification_cisia_atlas.ipynb      # Notebook principal de la certification
-├── README.md                            # Documentation du projet
-└── .gitignore                           # Fichiers generes non versionnes
+| Élément | Rôle |
+|---|---|
+| `certification_cisia_atlas.ipynb` | Notebook complet (sections 1 à 15 et annexe) |
+| `executer_et_verifier.py` | Exécute le notebook depuis un noyau neuf et vérifie tout le projet |
+| `src/entrainer_modele.py` | Seule implémentation de l'entraînement (XGBoost, Scénario 2, seuil 0,20) |
+| `src/retours_conseillers.py` | Relie les retours des conseillers aux prédictions journalisées |
+| `src/verifier_seuil_performance.py` | Garde-fou de qualité et d'équité avant toute promotion |
+| `src/api.py` | API FastAPI : `/health`, `/metrics`, `/predict`, `/retrain`, `/retrain/run` |
+| `src/interface.html` | Interface du conseiller |
+| `src/tests/test_api.py` | Tests automatisés |
+| `src/Dockerfile`, `src/docker-compose.yml` | Image d'inférence sans données, MLflow |
+| `.github/workflows/ci-cd.yml` | Tests, image Docker, publication, déploiement |
 ```
 
 Le code applicatif est regroupe dans `src/`. Le Notebook, le README et le workflow GitHub Actions restent a la racine du depot.
@@ -334,6 +326,8 @@ pytest tests -v
 
 Une ligne `PASSED` indique un test reussi. Une ligne `FAILED` indique une erreur a analyser avant le lancement du service.
 
+### 8.1 Executer les verfication 
+python executer_et_verifier.py        # exécution complète et rapport_execution.md
 ### 9. Lancer l'API
 
 ```bat
@@ -611,24 +605,30 @@ Verifier ensuite `/health`, puis arreter les services avec :
 docker compose down
 ```
 
+## Responsabilité juridique
+
+Le modèle est une aide à la décision : le conseiller décide. Le journal horodaté, qui associe chaque
+prédiction à la version du modèle qui l'a produite, est la trace qui permet de répondre à un usager
+ou à un contrôle ; il ne doit jamais pouvoir être perdu à moitié, d'où l'écriture atomique de la
+purge. L'analyse des risques (erreur d'orientation, discrimination, explicabilité) figure au § 10
+du notebook.
+
 ## Documentation complete
 
 Le Notebook `certification_cisia_atlas.ipynb` contient la demarche complete :
 
-- cadrage du besoin ;
-- exploration des donnees ;
-- nettoyage et pretraitement ;
-- construction des scenarios ;
-- comparaison des modeles ;
-- validation croisee ;
-- reduction des erreurs critiques ;
-- choix du modele et du seuil ;
-- evaluation finale ;
-- audit d'equite ;
-- explicabilite ;
-- architecture ;
-- API ;
-- MLflow ;
-- monitoring ;
-- Docker ;
-- integration continue.
+1. Cadrage du besoin et hypothèses
+2. Environnement et reproductibilité
+3. Exploration des données
+4. Contrôle qualité et préparation
+5. Construction des quatre scénarios
+6. Modèles candidats en validation croisée
+7. Comparaison des scénarios en validation croisée
+8. Réduction des erreurs critiques et choix du modèle
+9. Évaluation finale sur le jeu de test
+10. Éthique et cadre réglementaire
+11. Industrialisation : artefacts, API, suivi, CI/CD
+12. Limites
+13. Conclusion
+14. Journal de bord et tableau de suivi
+15. Contrôle final de cohérence

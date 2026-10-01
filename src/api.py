@@ -9,10 +9,10 @@ Charge le modèle et les artefacts sauvegardés par `entrainer_modele.py` (dossi
     - GET  /metrics      : compteurs au format Prometheus (monitoring)
     - POST /predict      : prédiction du niveau de risque pour un usager
     - POST /retrain      : enregistrement d'un retour conseiller (feedback)
-    - POST /retrain/run  : lancement d'un ré-entraînement CHALLENGER (clé admin requise),
-                           qui ne promeut jamais automatiquement le nouveau modèle
+    - POST /retrain/run  : ré-entraînement CHALLENGER intégrant les retours conseillers
+                           (clé admin requise), sans jamais promouvoir automatiquement
 
-Sécurité (voir README, section « Sécurité et cycle de vie de la donnée ») :
+Sécurité (voir README.md, section « Sécurité et cycle de vie de la donnée ») :
     - CLE_API      : si définie, toute requête doit porter l'en-tête `X-Cle-Api`.
     - CLE_ADMIN    : si définie, exigée en plus sur /retrain/run.
     - ORIGINES_AUTORISEES : liste CORS séparée par des virgules (défaut « * », démo).
@@ -33,6 +33,7 @@ import uuid
 from collections import Counter
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from typing import Literal
 
 import joblib
@@ -46,6 +47,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field, field_validator
 from scipy.sparse import csr_matrix, hstack
 
+DOSSIER_API = Path(__file__).resolve().parent
 DOSSIER_ARTEFACTS = os.environ.get("DOSSIER_ARTEFACTS", "artefacts_modele")
 DOSSIER_CANDIDAT = os.environ.get("DOSSIER_CANDIDAT", "artefacts_candidat")
 FICHIER_JOURNAL = os.environ.get("FICHIER_JOURNAL", "journal_requetes.jsonl")
@@ -94,7 +96,7 @@ def purger_journal(chemin: str, retention_jours: int) -> int:
         # substitue à l'original par un renommage — opération atomique au niveau du système
         # de fichiers. Une coupure pendant la purge laisse donc soit l'ancien journal intact,
         # soit le nouveau complet, jamais un journal tronqué. Ce fichier ayant une valeur
-        # probatoire (voir README, « Responsabilité juridique »), il ne doit jamais pouvoir
+        # probatoire (voir README.md, « Responsabilité juridique »), il ne doit jamais pouvoir
         # être perdu à moitié.
         temporaire = f"{chemin}.tmp"
         with open(temporaire, "w", encoding="utf-8") as f:
@@ -121,7 +123,7 @@ async def lifespan(app: FastAPI):
     print(f"[startup] Journal purgé : {supprimees} ligne(s) au-delà de {RETENTION_JOURNAL_JOURS} jours.")
     if not CLE_API:
         print("[startup] ⚠️  CLE_API non définie : l'API est ouverte. Acceptable en démonstration, "
-              "JAMAIS en production (voir README, section Sécurité).")
+              "JAMAIS en production (voir README.md, section Sécurité).")
     if ORIGINES_AUTORISEES == ["*"]:
         print("[startup] ⚠️  CORS ouvert à toutes les origines. En production, définir ORIGINES_AUTORISEES "
               "sur le seul domaine de l'application de guichet unique.")
@@ -365,7 +367,7 @@ def health():
 def metrics():
     """Compteurs au format d'exposition Prometheus.
 
-    Le monitoring recommandé pour ce service (voir notebook, étape 9.7) est
+    Le monitoring recommandé pour ce service (voir notebook, § 11.13) est
     volontairement proportionné : ces quelques compteurs suffisent à alimenter des
     alertes sur la disponibilité, le taux d'erreurs et la dérive de la distribution
     des classes prédites. Un Prometheus + Grafana peut les collecter tels quels sans
@@ -471,7 +473,7 @@ def predict(usager: UsagerEntree):
 def retrain_feedback(feedback: Feedback):
     """Enregistre un retour conseiller. Ne déclenche AUCUN ré-entraînement immédiat :
     les retours sont accumulés puis examinés lors d'un ré-entraînement supervisé
-    (voir /retrain/run et la section MLflow du notebook, étape 9.5)."""
+    (voir /retrain/run et le notebook, § 11.9 et § 11.11)."""
     ligne = {"timestamp": datetime.now(timezone.utc).isoformat(), **feedback.model_dump()}
     with open(FICHIER_FEEDBACK, "a", encoding="utf-8") as f:
         f.write(json.dumps(ligne, ensure_ascii=False) + "\n")
@@ -481,17 +483,19 @@ def retrain_feedback(feedback: Feedback):
 
 @app.post("/retrain/run", dependencies=[Depends(verifier_cle_admin)])
 def retrain_run():
-    """Lance un ré-entraînement CHALLENGER, sans jamais promouvoir automatiquement.
+    """Ré-entraînement monitoré : entraîne un CHALLENGER qui intègre les retours conseillers.
 
-    Le nouveau modèle est écrit dans un dossier distinct, une run MLflow est créée, et
-    l'API renvoie la comparaison avec le champion en production. La promotion reste une
-    décision humaine (copie des artefacts + redémarrage), conformément au pattern
-    challenger / champion décrit dans le notebook (étape 9.5).
+    1. `entrainer_modele.py --avec-feedback` relie chaque retour (POST /retrain) à la
+       prédiction journalisée de la même session, et ajoute ces lignes au SEUL jeu
+       d'entraînement : le jeu de test de référence ne change pas ;
+    2. le challenger est écrit dans un dossier distinct et tracé dans MLflow ;
+    3. la route renvoie la comparaison avec le champion en production.
+
+    La promotion reste une décision humaine (copie des artefacts + redémarrage).
 
     En production, ce travail appartient à un job d'entraînement dédié disposant d'un
-    accès au référentiel de données — pas au conteneur d'inférence, qui ne doit
-    embarquer aucune donnée personnelle. Cette route existe pour rendre le
-    déclenchement traçable et authentifié, pas pour héberger le calcul.
+    accès au référentiel de données — pas au conteneur d'inférence, qui n'embarque aucune
+    donnée personnelle (d'où la réponse 503 dans l'image Docker).
     """
     if not os.path.exists(CHEMIN_DONNEES):
         raise HTTPException(
@@ -500,18 +504,34 @@ def retrain_run():
                     "d'inférence n'embarque aucune donnée personnelle). Le ré-entraînement "
                     "doit être exécuté par le job dédié qui a accès au référentiel."),
         )
+    dossier_candidat = Path(DOSSIER_CANDIDAT)
+    if not dossier_candidat.is_absolute():
+        dossier_candidat = DOSSIER_API / dossier_candidat
+    # Chemins absolus : le script s'exécute depuis le dossier de l'API, qui n'est pas
+    # forcément le dossier courant du processus (notebook, tests, uvicorn lancé ailleurs).
+    environnement = {
+        **os.environ,
+        "PYTHONIOENCODING": "utf-8",
+        "CHEMIN_DONNEES": os.path.abspath(CHEMIN_DONNEES),
+        "FICHIER_JOURNAL": os.path.abspath(FICHIER_JOURNAL),
+        "FICHIER_FEEDBACK": os.path.abspath(FICHIER_FEEDBACK),
+    }
+    commande = [sys.executable, str(DOSSIER_API / "entrainer_modele.py"),
+                "--sortie", str(dossier_candidat), "--avec-feedback"]
     try:
-        subprocess.run(
-            [sys.executable, "entrainer_modele.py", "--sortie", DOSSIER_CANDIDAT],
-            check=True, capture_output=True, timeout=900,
-        )
+        subprocess.run(commande, check=True, capture_output=True, timeout=900,
+                       cwd=DOSSIER_API, env=environnement)
     except subprocess.CalledProcessError as e:
-        raise HTTPException(status_code=500, detail=f"Échec du ré-entraînement : {e.stderr.decode(errors='replace')[-500:]}")
+        raise HTTPException(status_code=500, detail=f"Échec du ré-entraînement : {e.stderr.decode('utf-8', errors='replace')[-500:]}")
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=504, detail="Ré-entraînement interrompu (délai dépassé).")
 
-    with open(f"{DOSSIER_CANDIDAT}/metriques.json", encoding="utf-8") as f:
+    with open(dossier_candidat / "metriques.json", encoding="utf-8") as f:
         candidat = json.load(f)
+    suivi = {}
+    if (dossier_candidat / "run_mlflow.json").exists():
+        with open(dossier_candidat / "run_mlflow.json", encoding="utf-8") as f:
+            suivi = json.load(f)
     champion = {}
     if os.path.exists(f"{DOSSIER_ARTEFACTS}/metriques.json"):
         with open(f"{DOSSIER_ARTEFACTS}/metriques.json", encoding="utf-8") as f:
@@ -524,7 +544,9 @@ def retrain_run():
     )
     return {
         "statut": "challenger entraîné, non promu",
-        "dossier_challenger": DOSSIER_CANDIDAT,
+        "dossier_challenger": str(dossier_candidat),
+        "retours_conseillers": suivi.get("retours_conseillers", {}),
+        "run_id_mlflow": suivi.get("run_id"),
         "metriques_challenger": candidat,
         "metriques_champion": champion,
         "recommandation": "promotion envisageable" if meilleur else "conserver le champion",

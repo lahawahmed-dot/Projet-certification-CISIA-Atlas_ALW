@@ -24,10 +24,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY entrainer_modele.py dataset_trajectoire_emploi.csv ./
+COPY entrainer_modele.py retours_conseillers.py verifier_seuil_performance.py dataset_trajectoire_emploi.csv ./
 
 ENV MLFLOW_TRACKING_URI=sqlite:////data/mlflow.db
-RUN mkdir -p /data && python entrainer_modele.py
+# Le garde-fou qualité / équité est rejoué ICI, sur le modèle qui sera réellement embarqué :
+# si ce modèle ne respecte pas les seuils, la construction de l'image échoue. La CI vérifie
+# en plus que ses métriques sont identiques à celles du modèle validé dans le premier job.
+RUN mkdir -p /data && python entrainer_modele.py \
+    && python verifier_seuil_performance.py --f1-macro-min 0.68 --erreur-critique-max 0.15 --ecart-rappel-max 0.15
 
 # --------------------------------------------------------------------------------------
 # Étape 2 — image d'inférence publiée (sans le jeu de données)

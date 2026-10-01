@@ -12,7 +12,7 @@ inaperçus et pourraient être déployés sans que personne ne s'en rende compte
 usager en subisse les conséquences.
 
 Le plancher de F1-macro par défaut (0,68) est volontairement le MÊME que celui utilisé
-comme contrainte dans la règle de sélection du modèle (notebook, étape 6.4) : ce qui a
+comme contrainte dans la règle de sélection du modèle (notebook, § 8) : ce qui a
 servi à choisir le modèle est ce qui sert à autoriser sa promotion.
 
 Limite méthodologique assumée : les métriques vérifiées ici sont celles produites par
@@ -34,6 +34,9 @@ FICHIER_METRIQUES = "artefacts_modele/metriques.json"
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        # Sous Windows, une sortie redirigée n'est pas en UTF-8 par défaut (symboles ✅ / ❌).
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Vérifie qu'un modèle entraîné dépasse les seuils minimaux de qualité et d'équité.")
     parser.add_argument("--metriques", default=FICHIER_METRIQUES, help=f"Fichier de métriques (défaut : {FICHIER_METRIQUES})")
     parser.add_argument("--f1-macro-min", type=float, default=0.68, help="F1-macro minimal acceptable (défaut : 0.68)")
@@ -77,8 +80,10 @@ def main():
             print(f"   - {e}")
         sys.exit(1)
 
+    effectif = metriques.get("effectif_classe2_hors_ue_test")
+    precision_effectif = f"{int(effectif)} usagers" if effectif is not None else "un petit nombre d'usagers"
     print("\n✅ Modèle accepté — dépasse les seuils minimaux de qualité et d'équité.")
-    print("   Rappel : l'écart de rappel est mesuré sur 20 usagers de classe 2 hors UE dans le jeu de test.")
+    print(f"   Rappel : l'écart de rappel est mesuré sur {precision_effectif} de classe 2 hors UE dans le jeu de test.")
     print("   C'est un garde-fou, pas une preuve d'équité : l'audit doit être refait en continu en production.")
     sys.exit(0)
 

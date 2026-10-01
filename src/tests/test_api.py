@@ -244,7 +244,7 @@ def test_predict_refuse_code_insee_cinq_lettres(client):
     assert "code_insee_commune" in detail_normalise
 
 def test_predict_accepte_code_insee_corse(client):
-    """Cas limite identifié dans le notebook (étape 2) : un code commençant par 2A/2B
+    """Cas limite identifié dans le notebook (§ 4.1) : un code commençant par 2A/2B
     (Corse) est un format valide, pas une anomalie."""
     reponse = client.post("/predict", json={
         "date_debut_poste": date_debut_il_y_a(3), "code_rome_vise": "M1607", "code_insee_commune": "2B033",
@@ -460,3 +460,73 @@ def test_schema_insee_rejette_une_chaine_arbitraire():
             "Le schéma UsagerEntree a accepté le code INSEE "
             "invalide ABCDE."
         )
+
+
+# --------------------------------------------------------------------------------------
+# Ré-entraînement monitoré : intégration des retours conseillers
+# --------------------------------------------------------------------------------------
+def test_retours_conseillers_relies_au_journal(tmp_path):
+    """Un retour n'est exploitable que s'il retrouve la prédiction journalisée de sa
+    session : l'ancienneté est recalculée à la date de la prédiction, et un retour sans
+    prédiction correspondante est écarté (et compté), jamais inventé."""
+    from retours_conseillers import charger_retours_conseillers
+
+    journal = tmp_path / "journal.jsonl"
+    feedback = tmp_path / "feedback.jsonl"
+    journal.write_text(json.dumps({
+        "timestamp": "2026-09-01T10:00:00+00:00",
+        "session_id": "session-a",
+        "entree": {
+            "age": 45.0, "niveau_diplome": "Bac", "date_debut_poste": "2016-09-01",
+            "code_rome_vise": "M1607", "code_insee_commune": "07240",
+            "est_allocataire": 1, "synthese_entretien": "Cumul de difficultés.",
+        },
+        "sortie": {"classe_predite": 1},
+    }) + "\n", encoding="utf-8")
+    feedback.write_text(
+        json.dumps({"session_id": "session-a", "classe_reelle_observee": 1}) + "\n"
+        + json.dumps({"session_id": "session-a", "classe_reelle_observee": 2}) + "\n"
+        + json.dumps({"session_id": "session-inconnue", "classe_reelle_observee": 0}) + "\n",
+        encoding="utf-8",
+    )
+
+    lignes, diagnostic = charger_retours_conseillers(str(journal), str(feedback))
+
+    assert len(lignes) == 1
+    assert lignes.loc[0, "classe_retour_emploi"] == 2          # le dernier retour fait foi
+    assert 9.9 < lignes.loc[0, "anciennete_poste_ans"] < 10.1  # 10 ans au 01/09/2026
+    assert diagnostic["retours_sans_prediction_journalisee"] == 1
+    assert diagnostic["retours_integres"] == 1
+
+
+def test_retrain_run_integre_les_retours_sans_promouvoir(monkeypatch, tmp_path):
+    """Avec une clé d'administration, /retrain/run entraîne un challenger qui intègre
+    les retours conseillers, le trace dans MLflow, et ne remplace jamais le champion."""
+    monkeypatch.setenv("CLE_ADMIN", "cle-admin-de-test")
+    monkeypatch.setenv("DOSSIER_CANDIDAT", str(tmp_path / "candidat"))
+    monkeypatch.setenv("MLFLOW_TRACKING_URI", f"sqlite:///{(tmp_path / 'mlflow.db').as_posix()}")
+    import api
+    importlib.reload(api)
+    with TestClient(api.app) as c:
+        prediction = c.post("/predict", json={
+            "age": 52, "niveau_diplome": "Sans diplôme", "date_debut_poste": date_debut_il_y_a(8),
+            "code_rome_vise": "M1607", "code_insee_commune": "07240",
+            "synthese_entretien": "Cumul de difficultés. Pas de moyen de transport.",
+        }).json()
+        assert c.post("/retrain", json={
+            "session_id": prediction["session_id"], "classe_reelle_observee": 2,
+        }).status_code == 200
+        assert c.post("/retrain/run").status_code == 401
+        reponse = c.post("/retrain/run", headers={"X-Cle-Admin": "cle-admin-de-test"})
+
+    assert reponse.status_code == 200, reponse.text
+    corps = reponse.json()
+    assert corps["statut"] == "challenger entraîné, non promu"
+    assert corps["retours_conseillers"]["retours_integres"] >= 1
+    assert corps["metriques_challenger"]["nb_retours_conseillers_integres"] >= 1
+    assert corps["run_id_mlflow"]
+
+    monkeypatch.delenv("CLE_ADMIN")
+    monkeypatch.delenv("DOSSIER_CANDIDAT")
+    monkeypatch.delenv("MLFLOW_TRACKING_URI")
+    importlib.reload(api)

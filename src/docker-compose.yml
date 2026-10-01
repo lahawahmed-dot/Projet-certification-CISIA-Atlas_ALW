@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: sourcing-ia-api
+    container_name: api-retour-emploi
     ports:
       - "8000:8000"
     environment:
@@ -33,10 +33,18 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
+    # Dimensionnement cible (notebook, § 11.3) : un cœur et 1 Go de mémoire suffisent pour ce
+    # modèle de moins d'un mégaoctet. La limite est appliquée ici pour être vérifiée en recette
+    # (`docker stats api-retour-emploi`), et non seulement annoncée.
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
 
   mlflow:
     image: python:3.12-slim
-    container_name: sourcing-ia-mlflow
+    container_name: mlflow-retour-emploi
     working_dir: /data
     volumes:
       - mlflow_data:/data

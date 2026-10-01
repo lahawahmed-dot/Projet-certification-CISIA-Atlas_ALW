@@ -1,0 +1,1048 @@
+{
+  "id_execution": "20261001T143518Z",
+  "date_utc": "2026-10-01T14:43:30+00:00",
+  "versions": {
+    "Python": "3.13.9",
+    "numpy": "2.3.5",
+    "pandas": "2.3.3",
+    "scikit-learn": "1.7.2",
+    "xgboost": "3.4.1",
+    "lightgbm": "4.7.0",
+    "scipy": "1.16.3",
+    "mlflow": "3.14.0",
+    "matplotlib": "3.10.6"
+  },
+  "empreinte_donnees_sha256": "2b9cb8c813b5f97540f0130b5e1cae2bad7ce5cbc1f57ffce51f54b498a7b34e",
+  "controles_verifies": 256,
+  "controles_total": 257,
+  "controles": [
+    {
+      "constat": "le fichier de données est le fichier d'origine fourni par l'organisme (empreinte SHA-256)",
+      "verifie": false
+    },
+    {
+      "constat": "le jeu contient 2 500 lignes et 10 colonnes",
+      "verifie": true
+    },
+    {
+      "constat": "quatre colonnes incomplètes : âge 122, diplôme 84, statut d'allocation 44, synthèse 81",
+      "verifie": true
+    },
+    {
+      "constat": "320 lignes comportent au moins une valeur manquante",
+      "verifie": true
+    },
+    {
+      "constat": "soit 4,9 %, 3,4 %, 1,8 % et 3,2 % des lignes",
+      "verifie": true
+    },
+    {
+      "constat": "classes 0, 1 et 2 : 936, 1 112 et 452 usagers",
+      "verifie": true
+    },
+    {
+      "constat": "soit 37,4 %, 44,5 % et 18,1 %",
+      "verifie": true
+    },
+    {
+      "constat": "l'âge va de 18 à 63 ans",
+      "verifie": true
+    },
+    {
+      "constat": "l'ancienneté va jusqu'à 22,6 ans",
+      "verifie": true
+    },
+    {
+      "constat": "Part d'usagers de nationalité hors UE (%) : 11.8000 (valeur citée dans le texte : 11.8)",
+      "verifie": true
+    },
+    {
+      "constat": "50 codes ROME et 2 407 communes distincts",
+      "verifie": true
+    },
+    {
+      "constat": "le texte ne contient que 9 formulations distinctes",
+      "verifie": true
+    },
+    {
+      "constat": "Part de la classe majoritaire, formulation la plus ambiguë (%) : 44.6000 (valeur citée dans le texte : 44.6)",
+      "verifie": true
+    },
+    {
+      "constat": "Part de la classe majoritaire, formulation la plus nette (%) : 78.4000 (valeur citée dans le texte : 78.4)",
+      "verifie": true
+    },
+    {
+      "constat": "les trois formulations les plus ambiguës ont la classe 2 pour majorité, sans dépasser 48 %",
+      "verifie": true
+    },
+    {
+      "constat": "formulation la plus ambiguë : « Freins périphériques… » ; la plus nette : « Compétences à réactualiser… »",
+      "verifie": true
+    },
+    {
+      "constat": "V de Cramér de la synthèse : 0.4780 (valeur citée dans le texte : 0.478)",
+      "verifie": true
+    },
+    {
+      "constat": "V de Cramér : synthèse 0,478, diplôme 0,284, métier 0,259, nationalité 0,222, département 0,218, statut d'allocation 0,017",
+      "verifie": true
+    },
+    {
+      "constat": "Khi² du statut d'allocation : 0.7000 (valeur citée dans le texte : 0.7)",
+      "verifie": true
+    },
+    {
+      "constat": "H de Kruskal-Wallis pour l'âge : 168.4564 (valeur citée dans le texte : 168.5)",
+      "verifie": true
+    },
+    {
+      "constat": "H de Kruskal-Wallis pour l'ancienneté : 7.5139 (valeur citée dans le texte : 7.5)",
+      "verifie": true
+    },
+    {
+      "constat": "p-value de Kruskal-Wallis pour l'ancienneté : 0.0234 (valeur citée dans le texte : 0.02)",
+      "verifie": true
+    },
+    {
+      "constat": "p-value du statut d'allocation : 0.6895 (valeur citée dans le texte : 0.69)",
+      "verifie": true
+    },
+    {
+      "constat": "Cases du département sous 5 observations attendues (%) : 32.3000 (valeur citée dans le texte : 32.3)",
+      "verifie": true
+    },
+    {
+      "constat": "Part de classe 2 chez les usagers de nationalité hors UE (%) : 38.0000 (valeur citée dans le texte : 38.0)",
+      "verifie": true
+    },
+    {
+      "constat": "Part de classe 2 chez les autres usagers (%) : 15.4000 (valeur citée dans le texte : 15.4)",
+      "verifie": true
+    },
+    {
+      "constat": "tranches d'âge : 563 et 442 usagers",
+      "verifie": true
+    },
+    {
+      "constat": "Part de classe 2 chez les 55 ans et plus (%) : 38.2000 (valeur citée dans le texte : 38.2)",
+      "verifie": true
+    },
+    {
+      "constat": "Part de classe 2 chez les 35-45 ans (%) : 7.6000 (valeur citée dans le texte : 7.6)",
+      "verifie": true
+    },
+    {
+      "constat": "aucun doublon",
+      "verifie": true
+    },
+    {
+      "constat": "30 lignes portent le code ROME W1401, hors des domaines A à N",
+      "verifie": true
+    },
+    {
+      "constat": "21 codes corses, tous au format valide",
+      "verifie": true
+    },
+    {
+      "constat": "10 usagers d'outre-mer, répartis sur 5 départements (971, 972, 973, 974 et 976)",
+      "verifie": true
+    },
+    {
+      "constat": "96 départements après extraction",
+      "verifie": true
+    },
+    {
+      "constat": "51 dossiers présentent une incohérence entre l'âge et l'ancienneté",
+      "verifie": true
+    },
+    {
+      "constat": "certains dossiers situent le début du poste avant 10 ans",
+      "verifie": true
+    },
+    {
+      "constat": "le jeu de test compte 500 usagers, dont 90 en classe 2",
+      "verifie": true
+    },
+    {
+      "constat": "le jeu d'entraînement compte 362 usagers en classe 2",
+      "verifie": true
+    },
+    {
+      "constat": "plus aucune valeur manquante après imputation",
+      "verifie": true
+    },
+    {
+      "constat": "le one-hot crée 146 colonnes (96 départements + 50 codes ROME)",
+      "verifie": true
+    },
+    {
+      "constat": "la base tabulaire compte 156 colonnes",
+      "verifie": true
+    },
+    {
+      "constat": "le vocabulaire TF-IDF compte 68 mots",
+      "verifie": true
+    },
+    {
+      "constat": "224, 223, 68 et 156 variables pour les scénarios 1 à 4 (155 pour la variante 4b)",
+      "verifie": true
+    },
+    {
+      "constat": "Random Forest est le plus lent pour prédire un usager",
+      "verifie": true
+    },
+    {
+      "constat": "les trois modèles prédisent un usager en moins de 200 ms (objectif H4)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro 1_multimodal_complet / XGBoost : 0.7052 (valeur citée dans le texte : 0.705)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique 1_multimodal_complet / XGBoost : 0.1132 (valeur citée dans le texte : 0.113)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro 1_multimodal_complet / LightGBM : 0.7004 (valeur citée dans le texte : 0.7)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique 1_multimodal_complet / LightGBM : 0.1216 (valeur citée dans le texte : 0.122)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro 2_sans_variable_sensible / XGBoost : 0.6831 (valeur citée dans le texte : 0.683)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique 2_sans_variable_sensible / XGBoost : 0.1269 (valeur citée dans le texte : 0.127)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro 2_sans_variable_sensible / LightGBM : 0.6692 (valeur citée dans le texte : 0.669)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique 2_sans_variable_sensible / LightGBM : 0.1324 (valeur citée dans le texte : 0.132)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro 3_texte_seul / XGBoost : 0.6350 (valeur citée dans le texte : 0.635)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique 3_texte_seul / XGBoost : 0.1904 (valeur citée dans le texte : 0.19)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro 3_texte_seul / LightGBM : 0.6350 (valeur citée dans le texte : 0.635)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique 3_texte_seul / LightGBM : 0.1904 (valeur citée dans le texte : 0.19)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro 4_tabulaire_seul / XGBoost : 0.6386 (valeur citée dans le texte : 0.639)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique 4_tabulaire_seul / XGBoost : 0.0967 (valeur citée dans le texte : 0.097)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro 4_tabulaire_seul / LightGBM : 0.6565 (valeur citée dans le texte : 0.657)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique 4_tabulaire_seul / LightGBM : 0.0938 (valeur citée dans le texte : 0.094)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost : F1-macro du Scénario 1 > Scénario 2 > Scénario 4 > Scénario 3",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost : la variante 4b reste en dessous du Scénario 2",
+      "verifie": true
+    },
+    {
+      "constat": "LightGBM : F1-macro du Scénario 1 > Scénario 2 > Scénario 4 > Scénario 3",
+      "verifie": true
+    },
+    {
+      "constat": "LightGBM : la variante 4b reste en dessous du Scénario 2",
+      "verifie": true
+    },
+    {
+      "constat": "Coût du retrait de la nationalité, XGBoost (F1-macro) : 0.0221 (valeur citée dans le texte : 0.022)",
+      "verifie": true
+    },
+    {
+      "constat": "Coût du retrait de la nationalité, LightGBM (F1-macro) : 0.0312 (valeur citée dans le texte : 0.031)",
+      "verifie": true
+    },
+    {
+      "constat": "dans les quatre scénarios, la confusion la plus fréquente oppose les classes 0 et 1",
+      "verifie": true
+    },
+    {
+      "constat": "dans les quatre scénarios, la confusion la plus fréquente oppose les classes 0 et 1",
+      "verifie": true
+    },
+    {
+      "constat": "AUC macro 1_multimodal_complet / XGBoost : 0.8616 (valeur citée dans le texte : 0.862)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC classe 2 1_multimodal_complet / XGBoost : 0.8716 (valeur citée dans le texte : 0.872)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC macro 1_multimodal_complet / LightGBM : 0.8612 (valeur citée dans le texte : 0.861)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC classe 2 1_multimodal_complet / LightGBM : 0.8763 (valeur citée dans le texte : 0.876)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC macro 2_sans_variable_sensible / XGBoost : 0.8401 (valeur citée dans le texte : 0.84)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC classe 2 2_sans_variable_sensible / XGBoost : 0.8508 (valeur citée dans le texte : 0.851)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC macro 2_sans_variable_sensible / LightGBM : 0.8371 (valeur citée dans le texte : 0.837)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC classe 2 2_sans_variable_sensible / LightGBM : 0.8516 (valeur citée dans le texte : 0.852)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC macro 3_texte_seul / XGBoost : 0.7407 (valeur citée dans le texte : 0.741)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC classe 2 3_texte_seul / XGBoost : 0.7191 (valeur citée dans le texte : 0.719)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC macro 3_texte_seul / LightGBM : 0.7407 (valeur citée dans le texte : 0.741)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC classe 2 3_texte_seul / LightGBM : 0.7191 (valeur citée dans le texte : 0.719)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC macro 4_tabulaire_seul / XGBoost : 0.7942 (valeur citée dans le texte : 0.794)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC classe 2 4_tabulaire_seul / XGBoost : 0.7985 (valeur citée dans le texte : 0.799)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC macro 4_tabulaire_seul / LightGBM : 0.7983 (valeur citée dans le texte : 0.798)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC classe 2 4_tabulaire_seul / LightGBM : 0.8027 (valeur citée dans le texte : 0.803)",
+      "verifie": true
+    },
+    {
+      "constat": "Coût du retrait de la nationalité en AUC macro, XGBoost : 0.0215 (valeur citée dans le texte : 0.022)",
+      "verifie": true
+    },
+    {
+      "constat": "Coût du retrait de la nationalité en AUC macro, LightGBM : 0.0242 (valeur citée dans le texte : 0.024)",
+      "verifie": true
+    },
+    {
+      "constat": "le plancher de 0,68 est le F1-macro de base du Scénario 2 arrondi au centième inférieur",
+      "verifie": true
+    },
+    {
+      "constat": "avec un poids de 1, on retrouve le F1-macro du § 7.1",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, poids 1 : erreur critique : 0.1269 (valeur citée dans le texte : 0.127)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, poids 15 : F1-macro : 0.6574 (valeur citée dans le texte : 0.657)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, poids 15 : erreur critique : 0.0938 (valeur citée dans le texte : 0.094)",
+      "verifie": true
+    },
+    {
+      "constat": "avec un poids de 15, XGBoost passe sous le plancher de 0,68",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.50 : F1-macro hors-pli : 0.6760 (valeur citée dans le texte : 0.676)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.50 : erreur critique hors-pli : 0.1381 (valeur citée dans le texte : 0.138)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.40 : F1-macro hors-pli : 0.6891 (valeur citée dans le texte : 0.689)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.40 : erreur critique hors-pli : 0.1271 (valeur citée dans le texte : 0.127)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.30 : F1-macro hors-pli : 0.6894 (valeur citée dans le texte : 0.689)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.30 : erreur critique hors-pli : 0.1160 (valeur citée dans le texte : 0.116)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.25 : F1-macro hors-pli : 0.6835 (valeur citée dans le texte : 0.683)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.25 : erreur critique hors-pli : 0.1105 (valeur citée dans le texte : 0.11)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.20 : F1-macro hors-pli : 0.6837 (valeur citée dans le texte : 0.684)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.20 : erreur critique hors-pli : 0.0994 (valeur citée dans le texte : 0.099)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.15 : F1-macro hors-pli : 0.6685 (valeur citée dans le texte : 0.669)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.15 : erreur critique hors-pli : 0.0884 (valeur citée dans le texte : 0.088)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.10 : F1-macro hors-pli : 0.6360 (valeur citée dans le texte : 0.636)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, seuil 0.10 : erreur critique hors-pli : 0.0773 (valeur citée dans le texte : 0.077)",
+      "verifie": true
+    },
+    {
+      "constat": "LightGBM, seuil 0.20 : F1-macro hors-pli : 0.6626 (valeur citée dans le texte : 0.663)",
+      "verifie": true
+    },
+    {
+      "constat": "LightGBM, seuil 0.20 : erreur critique hors-pli : 0.1160 (valeur citée dans le texte : 0.116)",
+      "verifie": true
+    },
+    {
+      "constat": "au seuil 0,20, XGBoost fait moins d'erreurs critiques qu'avec la règle argmax",
+      "verifie": true
+    },
+    {
+      "constat": "entre la règle argmax et le seuil 0,20, le F1-macro de XGBoost varie d'au plus un point",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, poids 3 et seuil 0,20 : F1-macro : 0.6516 (valeur citée dans le texte : 0.652)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, poids 3 et seuil 0,20 : erreur critique : 0.0718 (valeur citée dans le texte : 0.072)",
+      "verifie": true
+    },
+    {
+      "constat": "aucune combinaison pondération + seuil ne respecte le plancher",
+      "verifie": true
+    },
+    {
+      "constat": "21 combinaisons testées, 5 respectent le plancher",
+      "verifie": true
+    },
+    {
+      "constat": "les 5 combinaisons éligibles sont des réglages de XGBoost",
+      "verifie": true
+    },
+    {
+      "constat": "la règle désigne XGBoost au seuil 0,20",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro hors-pli de la combinaison retenue : 0.6837 (valeur citée dans le texte : 0.6837)",
+      "verifie": true
+    },
+    {
+      "constat": "la combinaison retenue commet 36 erreurs critiques sur 362 usagers de classe 2",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique de Random Forest au seuil 0,15 : 0.0608 (valeur citée dans le texte : 0.061)",
+      "verifie": true
+    },
+    {
+      "constat": "Random Forest au seuil 0,15 a l'erreur critique la plus basse de la grille",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro de Random Forest au seuil 0,15 : 0.6191 (valeur citée dans le texte : 0.619)",
+      "verifie": true
+    },
+    {
+      "constat": "le script d'entraînement livré applique le seuil choisi ici",
+      "verifie": true
+    },
+    {
+      "constat": "le garde-fou de la CI applique le même plancher de F1-macro",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost par défaut : 100 itérations, profondeur 6, taux d'apprentissage 0,3",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost : 5 configurations éligibles sur 31",
+      "verifie": true
+    },
+    {
+      "constat": "parmi les configurations éligibles de XGBoost, les réglages par défaut font le moins d'erreurs critiques",
+      "verifie": true
+    },
+    {
+      "constat": "la meilleure configuration de XGBoost en F1-macro est essai_20",
+      "verifie": true
+    },
+    {
+      "constat": "essai_20 : F1-macro : 0.6864 (valeur citée dans le texte : 0.6864)",
+      "verifie": true
+    },
+    {
+      "constat": "essai_20 : erreur critique : 0.1077 (valeur citée dans le texte : 0.1077)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique de la configuration par défaut : 0.0994 (valeur citée dans le texte : 0.0994)",
+      "verifie": true
+    },
+    {
+      "constat": "Gain de F1-macro d'essai_20 sur la configuration par défaut : 0.0027 (valeur citée dans le texte : 0.0027)",
+      "verifie": true
+    },
+    {
+      "constat": "Surcroît d'erreur critique d'essai_20 : 0.0083 (valeur citée dans le texte : 0.0083)",
+      "verifie": true
+    },
+    {
+      "constat": "LightGBM : une seule configuration éligible sur 31, essai_15",
+      "verifie": true
+    },
+    {
+      "constat": "LightGBM essai_15 : erreur critique : 0.1188 (valeur citée dans le texte : 0.1188)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro moyen de XGBoost (5 × 4 plis) : 0.6713 (valeur citée dans le texte : 0.6713)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro moyen de LightGBM (5 × 4 plis) : 0.6644 (valeur citée dans le texte : 0.6644)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique moyenne de XGBoost (5 × 4 plis) : 0.0938 (valeur citée dans le texte : 0.0938)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique moyenne de LightGBM (5 × 4 plis) : 0.1056 (valeur citée dans le texte : 0.1056)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost devance LightGBM sur 15 plis sur 20",
+      "verifie": true
+    },
+    {
+      "constat": "p-value du test t classique : 0.0063 (valeur citée dans le texte : 0.0063)",
+      "verifie": true
+    },
+    {
+      "constat": "après correction de Nadeau et Bengio, l'écart n'est plus statistiquement significatif",
+      "verifie": true
+    },
+    {
+      "constat": "45 des 51 dossiers incohérents sont dans le jeu d'entraînement",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro avec toutes les lignes : 0.6854 (valeur citée dans le texte : 0.6854)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro sans les lignes incohérentes : 0.6770 (valeur citée dans le texte : 0.677)",
+      "verifie": true
+    },
+    {
+      "constat": "Erreur critique moyenne avec toutes les lignes : 0.0931 (valeur citée dans le texte : 0.0931)",
+      "verifie": true
+    },
+    {
+      "constat": "l'erreur critique moyenne est la même dans les deux variantes",
+      "verifie": true
+    },
+    {
+      "constat": "l'écart change de signe selon les plis",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro, préparation réapprise dans chaque pli : 0.6833 (valeur citée dans le texte : 0.6833)",
+      "verifie": true
+    },
+    {
+      "constat": "préparation réapprise dans chaque pli : 38 erreurs critiques sur 362",
+      "verifie": true
+    },
+    {
+      "constat": "les deux protocoles donnent le même F1-macro à moins d'un millième près",
+      "verifie": true
+    },
+    {
+      "constat": "le one-hot crée 10 colonnes (9 formulations et le texte vide)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro moyen avec le TF-IDF : 0.6832 (valeur citée dans le texte : 0.683)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro moyen avec le one-hot : 0.6837 (valeur citée dans le texte : 0.684)",
+      "verifie": true
+    },
+    {
+      "constat": "chacune des 9 formulations a sa paraphrase",
+      "verifie": true
+    },
+    {
+      "constat": "sur des paraphrases, le TF-IDF garde plus de signal que le one-hot des formulations",
+      "verifie": true
+    },
+    {
+      "constat": "le modèle texte seul se dégrade quand des mots disparaissent",
+      "verifie": true
+    },
+    {
+      "constat": "le modèle complet perd moins que le modèle texte seul face aux paraphrases",
+      "verifie": true
+    },
+    {
+      "constat": "les deux modèles prédisent un usager en moins de 50 ms",
+      "verifie": true
+    },
+    {
+      "constat": "le modèle sérialisé pèse moins d'un mégaoctet",
+      "verifie": true
+    },
+    {
+      "constat": "l'hébergement continu pèse plus de mille fois les inférences annuelles",
+      "verifie": true
+    },
+    {
+      "constat": "Accuracy au seuil 0,20 : 0.7080 (valeur citée dans le texte : 0.708)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro au seuil 0,20 : 0.6906 (valeur citée dans le texte : 0.6906)",
+      "verifie": true
+    },
+    {
+      "constat": "au seuil 0,20 : 7 erreurs critiques sur 90 usagers de classe 2",
+      "verifie": true
+    },
+    {
+      "constat": "Accuracy avec l'argmax : 0.7400 (valeur citée dans le texte : 0.74)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro avec l'argmax : 0.7119 (valeur citée dans le texte : 0.7119)",
+      "verifie": true
+    },
+    {
+      "constat": "avec l'argmax : 10 erreurs critiques sur 90",
+      "verifie": true
+    },
+    {
+      "constat": "toute prédiction 0 du seuil est aussi une prédiction 0 de l'argmax : le seuil ne crée aucune erreur critique",
+      "verifie": true
+    },
+    {
+      "constat": "IC 95 % du F1-macro : [0,646 ; 0,731]",
+      "verifie": true
+    },
+    {
+      "constat": "IC 95 % de l'erreur critique : [0,025 ; 0,138]",
+      "verifie": true
+    },
+    {
+      "constat": "dans aucun rééchantillonnage le seuil ne fait plus d'erreurs critiques que l'argmax",
+      "verifie": true
+    },
+    {
+      "constat": "matrice de confusion au seuil 0,20 conforme au texte",
+      "verifie": true
+    },
+    {
+      "constat": "matrice de confusion argmax conforme au texte",
+      "verifie": true
+    },
+    {
+      "constat": "précisions au seuil 0,20 : 0,828 / 0,725 / 0,513",
+      "verifie": true
+    },
+    {
+      "constat": "rappels au seuil 0,20 : 0,722 / 0,709 / 0,678",
+      "verifie": true
+    },
+    {
+      "constat": "rappels argmax : 0,754 / 0,812 / 0,533",
+      "verifie": true
+    },
+    {
+      "constat": "AUC macro sur le test : 0.8560 (valeur citée dans le texte : 0.856)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC pondérée sur le test : 0.8554 (valeur citée dans le texte : 0.855)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC par classe : 0,889 / 0,830 / 0,849",
+      "verifie": true
+    },
+    {
+      "constat": "argmax : 48 usagers de classe 2 détectés, 22 fausses alertes",
+      "verifie": true
+    },
+    {
+      "constat": "seuil 0,20 : 61 détectés, 58 fausses alertes",
+      "verifie": true
+    },
+    {
+      "constat": "7 erreurs critiques sur le jeu de test",
+      "verifie": true
+    },
+    {
+      "constat": "toutes ont une probabilité de classe 2 inférieure au seuil (par construction)",
+      "verifie": true
+    },
+    {
+      "constat": "le tableau par tranche d'âge couvre les 90 usagers de classe 2 et les 7 erreurs critiques",
+      "verifie": true
+    },
+    {
+      "constat": "le F1-macro de validation croisée est dans l'intervalle de confiance du test",
+      "verifie": true
+    },
+    {
+      "constat": "l'erreur critique de validation croisée est dans l'intervalle de confiance du test",
+      "verifie": true
+    },
+    {
+      "constat": "Coût du seuil sur le F1-macro du test : 0.0214 (valeur citée dans le texte : 0.021)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, Scénario 1 au seuil 0,20 : F1-macro : 0.7003 (valeur citée dans le texte : 0.7003)",
+      "verifie": true
+    },
+    {
+      "constat": "XGBoost, Scénario 1 : 34 erreurs critiques",
+      "verifie": true
+    },
+    {
+      "constat": "LightGBM, Scénario 1 au seuil 0,20 : F1-macro : 0.6927 (valeur citée dans le texte : 0.6927)",
+      "verifie": true
+    },
+    {
+      "constat": "LightGBM, Scénario 2 au seuil 0,20 : F1-macro : 0.6626 (valeur citée dans le texte : 0.6626)",
+      "verifie": true
+    },
+    {
+      "constat": "Perte de F1-macro de XGBoost : 0.0166 (valeur citée dans le texte : 0.0166)",
+      "verifie": true
+    },
+    {
+      "constat": "Perte de F1-macro de LightGBM : 0.0302 (valeur citée dans le texte : 0.0302)",
+      "verifie": true
+    },
+    {
+      "constat": "LightGBM : 33 erreurs critiques avec la nationalité, 42 sans",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro du modèle intact : 0.6906 (valeur citée dans le texte : 0.6906)",
+      "verifie": true
+    },
+    {
+      "constat": "parts de contribution : texte 37,2 %, diplôme 23,8 %, âge 23,2 %, ROME 9,0 %, ancienneté 5,8 %, département 0,7 %",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro sans l'âge : 0.6166 (valeur citée dans le texte : 0.6166)",
+      "verifie": true
+    },
+    {
+      "constat": "sans l'âge : 51 erreurs critiques sur 362, contre 38 avec",
+      "verifie": true
+    },
+    {
+      "constat": "Perte de F1-macro due au retrait de l'âge : 0.0666 (valeur citée dans le texte : 0.0666)",
+      "verifie": true
+    },
+    {
+      "constat": "le retrait de l'âge dégrade le F1-macro dans chacun des 5 plis",
+      "verifie": true
+    },
+    {
+      "constat": "les deux usagers expliqués sont les n° 14 et n° 8 du jeu de test",
+      "verifie": true
+    },
+    {
+      "constat": "Usager n° 14 : probabilité de classe 2 : 0.4320 (valeur citée dans le texte : 0.432)",
+      "verifie": true
+    },
+    {
+      "constat": "usager n° 14 : texte +0,936, diplôme +0,542, ancienneté −0,398, âge −0,252",
+      "verifie": true
+    },
+    {
+      "constat": "Usager n° 8 : probabilité de classe 2 : 0.0033 (valeur citée dans le texte : 0.003)",
+      "verifie": true
+    },
+    {
+      "constat": "AUC de reconstitution de la nationalité : 0.5165 (valeur citée dans le texte : 0.516)",
+      "verifie": true
+    },
+    {
+      "constat": "les variables du Scénario 2 ne permettent pas de reconstituer la nationalité",
+      "verifie": true
+    },
+    {
+      "constat": "444 usagers UE et 56 hors UE dans le jeu de test",
+      "verifie": true
+    },
+    {
+      "constat": "part réelle de classe 2 : 15,8 % et 35,7 %",
+      "verifie": true
+    },
+    {
+      "constat": "part prédite de classe 2 : 23,0 % et 30,4 %",
+      "verifie": true
+    },
+    {
+      "constat": "rappel de la classe 2 : 0,686 et 0,650",
+      "verifie": true
+    },
+    {
+      "constat": "erreurs critiques : 7 sur 70 et 0 sur 20",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro sans le statut d'allocation : 0.6857 (valeur citée dans le texte : 0.6857)",
+      "verifie": true
+    },
+    {
+      "constat": "F1-macro sans le statut ni son indicateur : 0.6823 (valeur citée dans le texte : 0.6823)",
+      "verifie": true
+    },
+    {
+      "constat": "le script produit les six fichiers d'artefacts attendus",
+      "verifie": true
+    },
+    {
+      "constat": "le modèle produit par le script donne les mêmes probabilités que celui du notebook",
+      "verifie": true
+    },
+    {
+      "constat": "le script apprend le même vocabulaire et les mêmes catégories que le notebook",
+      "verifie": true
+    },
+    {
+      "constat": "le seuil et les valeurs d'imputation enregistrés sont ceux du notebook",
+      "verifie": true
+    },
+    {
+      "constat": "les métriques enregistrées par le script sont celles du § 9",
+      "verifie": true
+    },
+    {
+      "constat": "l'ensemble des artefacts pèse moins d'un mégaoctet",
+      "verifie": true
+    },
+    {
+      "constat": "l'API a chargé le modèle et applique le seuil 0,20",
+      "verifie": true
+    },
+    {
+      "constat": "sans âge, diplôme, statut ni synthèse, la prédiction reste possible (imputation)",
+      "verifie": true
+    },
+    {
+      "constat": "un code ROME mal formé est rejeté avant le modèle",
+      "verifie": true
+    },
+    {
+      "constat": "une date de début de poste dans le futur est rejetée",
+      "verifie": true
+    },
+    {
+      "constat": "l'incohérence âge / ancienneté et l'âge hors plage d'entraînement sont signalés au conseiller",
+      "verifie": true
+    },
+    {
+      "constat": "sans âge, aucune incohérence n'est signalée : même règle qu'à l'entraînement",
+      "verifie": true
+    },
+    {
+      "constat": "un département absent de l'entraînement est signalé au conseiller",
+      "verifie": true
+    },
+    {
+      "constat": "une nationalité envoyée malgré tout est ignorée : la prédiction est identique",
+      "verifie": true
+    },
+    {
+      "constat": "95 % des requêtes sont traitées en moins de 200 ms côté serveur (objectif H4)",
+      "verifie": true
+    },
+    {
+      "constat": "95 % des requêtes complètes aboutissent en moins d'une seconde",
+      "verifie": true
+    },
+    {
+      "constat": "l'API et le notebook donnent la même classe pour les 25 usagers",
+      "verifie": true
+    },
+    {
+      "constat": "les probabilités de l'API ne diffèrent de celles du notebook que par l'arrondi à 3 décimales",
+      "verifie": true
+    },
+    {
+      "constat": "le retour est enregistré ; le réentraînement est refusé sans clé d'administration",
+      "verifie": true
+    },
+    {
+      "constat": "le réentraînement produit un challenger, sans le promouvoir",
+      "verifie": true
+    },
+    {
+      "constat": "le retour du conseiller est relié à sa prédiction et intégré à l'entraînement du challenger",
+      "verifie": true
+    },
+    {
+      "constat": "le modèle champion en service n'a pas été modifié",
+      "verifie": true
+    },
+    {
+      "constat": "le journal contient exactement une ligne par prédiction réussie",
+      "verifie": true
+    },
+    {
+      "constat": "aucune ligne du journal ne contient la nationalité",
+      "verifie": true
+    },
+    {
+      "constat": "chaque prédiction journalisée indique la version du modèle qui l'a produite",
+      "verifie": true
+    },
+    {
+      "constat": "le journal de cette exécution ne contient aucune requête de test manuel",
+      "verifie": true
+    },
+    {
+      "constat": "le fichier des retours contient uniquement le retour de la démonstration",
+      "verifie": true
+    },
+    {
+      "constat": "cette exécution a produit deux runs MLflow : le champion et le challenger",
+      "verifie": true
+    },
+    {
+      "constat": "l'alias « champion » du registre désigne le modèle en service",
+      "verifie": true
+    },
+    {
+      "constat": "le formulaire contient les sept champs attendus par l'API",
+      "verifie": true
+    },
+    {
+      "constat": "l'interface ne demande pas la nationalité",
+      "verifie": true
+    },
+    {
+      "constat": "l'interface appelle /predict, /retrain et /health",
+      "verifie": true
+    },
+    {
+      "constat": "l'historique des évaluations est conservé sur le poste du conseiller",
+      "verifie": true
+    },
+    {
+      "constat": "l'écran rappelle que la décision revient au conseiller",
+      "verifie": true
+    },
+    {
+      "constat": "les probabilités sont affichées en pourcentages entiers",
+      "verifie": true
+    },
+    {
+      "constat": "les compteurs de /metrics correspondent exactement au journal",
+      "verifie": true
+    },
+    {
+      "constat": "les requêtes rejetées sont comptées comme erreurs de validation",
+      "verifie": true
+    },
+    {
+      "constat": "le retour du conseiller est compté",
+      "verifie": true
+    },
+    {
+      "constat": "le vocabulaire des synthèses d'entraînement est entièrement couvert (par construction)",
+      "verifie": true
+    },
+    {
+      "constat": "des formulations nouvelles font baisser la couverture du vocabulaire : l'indicateur détecte cette dérive",
+      "verifie": true
+    },
+    {
+      "constat": "le pipeline enchaîne trois jobs : tests et entraînement, image Docker, déploiement",
+      "verifie": true
+    },
+    {
+      "constat": "la CI exécute les tests et le garde-fou de qualité et d'équité",
+      "verifie": true
+    },
+    {
+      "constat": "l'image d'inférence n'embarque pas le jeu de données, et sa construction rejoue le garde-fou",
+      "verifie": true
+    },
+    {
+      "constat": "tous les tests automatisés de l'API passent",
+      "verifie": true
+    }
+  ]
+}

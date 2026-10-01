@@ -1,7 +1,13 @@
 name: CI/CD - API prediction retour emploi
 
-# Le workflow doit etre place a la racine du depot :
-# .github/workflows/ci-cd.yml
+# Le workflow doit etre place a la racine du depot : .github/workflows/ci-cd.yml
+#
+# Trois jobs, dans cet ordre :
+#   1. test-et-lint  : compilation, lint, entrainement, garde-fou qualite/equite, tests ;
+#   2. build-image   : image Docker, controles, publication sur GitHub Container Registry ;
+#   3. deploiement   : deploiement sur le serveur cible si DEPLOY_HOST est configure,
+#                      sinon deploiement de recette sur le runner (pull + demarrage + tests).
+# Les jobs 2 et 3 ne s'executent qu'apres un push sur main, jamais sur une pull request.
 
 on:
   push:
@@ -16,10 +22,12 @@ on:
       - ".github/workflows/ci-cd.yml"
 
 # Le code applicatif se trouve dans src/.
-# Toutes les commandes run s'executent donc depuis ce dossier par defaut.
 defaults:
   run:
     working-directory: src
+
+env:
+  NOM_IMAGE: api-retour-emploi
 
 jobs:
   test-et-lint:
@@ -34,10 +42,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           fichiers_obligatoires=(
             "api.py"
             "entrainer_modele.py"
+            "retours_conseillers.py"
             "verifier_seuil_performance.py"
             "Dockerfile"
             "requirements.txt"
@@ -45,31 +53,15 @@ jobs:
             "tests/test_api.py"
             "dataset_trajectoire_emploi.csv"
           )
-
           erreur=0
-          echo "Verification des fichiers indispensables..."
-
           for fichier in "${fichiers_obligatoires[@]}"; do
-            if [ -f "$fichier" ]; then
-              echo "OK - $fichier"
-            else
-              echo "ERREUR - fichier absent : $fichier"
-              erreur=1
-            fi
+            if [ -f "$fichier" ]; then echo "OK - $fichier"; else echo "ERREUR - fichier absent : $fichier"; erreur=1; fi
           done
-
-          if [ "$erreur" -ne 0 ]; then
-            echo "Le pipeline ne peut pas continuer."
-            exit 1
-          fi
-
+          if [ "$erreur" -ne 0 ]; then exit 1; fi
           if [ ! -s "dataset_trajectoire_emploi.csv" ]; then
-            echo "ERREUR - dataset_trajectoire_emploi.csv existe mais il est vide."
+            echo "ERREUR - dataset_trajectoire_emploi.csv est vide."
             exit 1
           fi
-
-          echo "OK - tous les fichiers indispensables sont presents."
-          echo "OK - le dataset existe et n'est pas vide."
 
       - name: Installer Python
         uses: actions/setup-python@v5
@@ -86,24 +78,12 @@ jobs:
           python -m pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Compiler les fichiers Python
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          python -m py_compile \
-            api.py \
-            entrainer_modele.py \
-            verifier_seuil_performance.py \
-            tests/test_api.py
-
-          echo "OK - compilation Python terminee sans erreur."
+        run: python -m py_compile api.py entrainer_modele.py retours_conseillers.py verifier_seuil_performance.py tests/test_api.py
 
       - name: Verifier les imports applicatifs
-        run: |
-          python -c "import api; import entrainer_modele; import verifier_seuil_performance"
-          echo "OK - imports applicatifs verifies."
+        run: python -c "import api, entrainer_modele, retours_conseillers, verifier_seuil_performance"
 
-      # Le linting porte uniquement sur le code applicatif.
+      # Le linting porte uniquement sur le code applicatif (dossier src/).
       - name: Linting
         run: ruff check .
 
@@ -114,25 +94,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          for fichier in modele_xgboost.joblib onehot_encoder.joblib tfidf_vectorizer.joblib \
+                         parametres_imputation.joblib metriques.json run_mlflow.json; do
+            test -s "artefacts_modele/$fichier" || { echo "ERREUR - artefact absent ou vide : $fichier"; exit 1; }
+            echo "OK - $fichier"
+          done
 
-          if [ ! -d "artefacts_modele" ]; then
-            echo "ERREUR - le dossier artefacts_modele n'a pas ete cree."
-            exit 1
-          fi
-
-          nombre_fichiers=$(find "artefacts_modele" -maxdepth 1 -type f | wc -l | tr -d ' ')
-
-          if [ "$nombre_fichiers" -eq 0 ]; then
-            echo "ERREUR - le dossier artefacts_modele existe mais il est vide."
-            exit 1
-          fi
-
-          echo "OK - le dossier artefacts_modele a ete genere."
-          echo "Nombre de fichiers produits : $nombre_fichiers"
-          echo "Liste des artefacts :"
-          find "artefacts_modele" -maxdepth 1 -type f -printf "%f\n" | sort
-
-      # Garde-fou challenger/champion : qualite et equite.
+      # Garde-fou challenger/champion : qualite ET equite.
       - name: Verifier les seuils de qualite et d'equite avant promotion
         run: >-
           python verifier_seuil_performance.py
@@ -143,111 +111,167 @@ jobs:
       - name: Executer les tests unitaires
         run: pytest tests/ -v
 
+      # Les metriques du modele valide sont conservees : le job suivant verifie que
+      # l'image Docker embarque un modele aux metriques strictement identiques.
+      - name: Conserver les metriques du modele valide
+        uses: actions/upload-artifact@v4
+        with:
+          name: metriques-modele-valide
+          path: src/artefacts_modele/metriques.json
+          if-no-files-found: error
+
   build-image:
-    name: Construction et controle de l'image Docker
+    name: Construction, controle et publication de l'image
     needs: test-et-lint
     runs-on: ubuntu-latest
-
-    # Construction uniquement apres un push sur main, jamais sur une pull request.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.nom.outputs.image }}
 
     steps:
       - name: Recuperer le depot
         uses: actions/checkout@v4
 
-      - name: Verifier les fichiers indispensables au build Docker
+      - name: Calculer le nom de l'image (GHCR exige des minuscules)
+        id: nom
         shell: bash
-        run: |
-          set -euo pipefail
-
-          fichiers_obligatoires=(
-            "Dockerfile"
-            "api.py"
-            "requirements.txt"
-            "dataset_trajectoire_emploi.csv"
-            "entrainer_modele.py"
-          )
-
-          erreur=0
-          for fichier in "${fichiers_obligatoires[@]}"; do
-            if [ -f "$fichier" ]; then
-              echo "OK - $fichier"
-            else
-              echo "ERREUR - fichier absent pour le build Docker : $fichier"
-              erreur=1
-            fi
-          done
-
-          if [ "$erreur" -ne 0 ]; then
-            exit 1
-          fi
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${NOM_IMAGE}" >> "$GITHUB_OUTPUT"
 
       - name: Construire l'image Docker
         run: |
           docker build \
-            -t "sourcing-ia-api:${{ github.sha }}" \
-            -t sourcing-ia-api:latest \
+            -t "${{ steps.nom.outputs.image }}:${{ github.sha }}" \
+            -t "${{ steps.nom.outputs.image }}:latest" \
             .
+
+      - name: Recuperer les metriques du modele valide
+        uses: actions/download-artifact@v4
+        with:
+          name: metriques-modele-valide
+          path: ${{ runner.temp }}/modele-valide
+
+      - name: Verifier que l'image embarque le modele valide
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --entrypoint cat "${{ steps.nom.outputs.image }}:${{ github.sha }}" \
+            /app/artefacts_modele/metriques.json > "${RUNNER_TEMP}/metriques_image.json"
+          python3 - "${RUNNER_TEMP}/modele-valide/metriques.json" "${RUNNER_TEMP}/metriques_image.json" <<'EOF'
+          import json, sys
+          valide = json.load(open(sys.argv[1], encoding="utf-8"))
+          image = json.load(open(sys.argv[2], encoding="utf-8"))
+          ecarts = {k: (valide[k], image.get(k)) for k in valide
+                    if image.get(k) is None or abs(float(valide[k]) - float(image[k])) > 1e-9}
+          if ecarts:
+              sys.exit(f"ERREUR - le modele de l'image differe du modele valide : {ecarts}")
+          print("OK - l'image embarque un modele aux metriques identiques au modele valide.")
+          EOF
 
       - name: Verifier que l'image demarre correctement
         shell: bash
         run: |
           set -euo pipefail
-
           nettoyer() {
             docker logs test-container 2>/dev/null || true
             docker rm -f test-container 2>/dev/null || true
           }
           trap nettoyer EXIT
-
-          docker run -d \
-            --name test-container \
-            -p 8000:8000 \
-            sourcing-ia-api:latest
-
-          reponse_ok=0
+          docker run -d --name test-container -p 8000:8000 "${{ steps.nom.outputs.image }}:${{ github.sha }}"
           for tentative in $(seq 1 30); do
             if curl --fail --silent --show-error http://localhost:8000/health; then
-              reponse_ok=1
-              break
+              echo; echo "OK - la route /health repond."; exit 0
             fi
             echo "API non prete, tentative ${tentative}/30..."
             sleep 2
           done
-
-          if [ "$reponse_ok" -ne 1 ]; then
-            echo "ERREUR - l'API n'a pas repondu correctement sur /health."
-            exit 1
-          fi
-
-          echo "OK - l'image demarre et la route /health repond."
+          echo "ERREUR - l'API n'a pas repondu sur /health."
+          exit 1
 
       - name: Verifier que l'application ne contient aucun fichier de donnees
         shell: bash
         run: |
           set -euo pipefail
-
-          # Le controle porte sur /app, qui est le contenu applicatif publie.
-          # Cela evite les faux positifs provenant des jeux d'exemple inclus
-          # dans certaines bibliotheques Python sous /usr/local/lib.
-          trouves=$(docker run --rm --entrypoint sh sourcing-ia-api:latest -c \
+          trouves=$(docker run --rm --entrypoint sh "${{ steps.nom.outputs.image }}:${{ github.sha }}" -c \
             "find /app -type f \( -name '*.csv' -o -name '*.parquet' -o -name '*.xlsx' \) -print 2>/dev/null")
-
           if [ -n "$trouves" ]; then
-            echo "ERREUR - fichier(s) de donnees present(s) dans l'image d'inference :"
+            echo "ERREUR - fichier(s) de donnees dans l'image d'inference :"
             echo "$trouves"
             exit 1
           fi
-
           echo "OK - aucun fichier CSV, Parquet ou Excel dans /app."
 
-      # Publication illustrative. Activer uniquement apres configuration
-      # des secrets REGISTRY_USER et REGISTRY_TOKEN.
-      # - name: Publier l'image sur le registre
-      #   working-directory: src
-      #   run: |
-      #     echo "${{ secrets.REGISTRY_TOKEN }}" | \
-      #       docker login registre-interne.agence.fr \
-      #       -u "${{ secrets.REGISTRY_USER }}" \
-      #       --password-stdin
-      #     docker push "sourcing-ia-api:${{ github.sha }}"
+      - name: Publier l'image sur GitHub Container Registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker push "${{ steps.nom.outputs.image }}:${{ github.sha }}"
+          docker push "${{ steps.nom.outputs.image }}:latest"
+          echo "OK - image publiee : ${{ steps.nom.outputs.image }}:${{ github.sha }}"
+
+  deploiement:
+    name: Deploiement sur l'infrastructure cible
+    needs: build-image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    # Pas de checkout dans ce job : les commandes s'executent depuis le dossier courant.
+    defaults:
+      run:
+        working-directory: .
+    env:
+      IMAGE: ${{ needs.build-image.outputs.image }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+
+    steps:
+      - name: Se connecter au registre
+        shell: bash
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      # Serveur cible (on-premise ou cloud souverain) : active des que les secrets
+      # DEPLOY_HOST, DEPLOY_USER et DEPLOY_SSH_KEY sont definis dans le depot.
+      # Le serveur doit pouvoir lire l'image (docker login ghcr.io, ou paquet public).
+      - name: Deployer sur le serveur cible
+        if: env.DEPLOY_HOST != ''
+        shell: bash
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploiement
+          chmod 600 ~/.ssh/id_deploiement
+          ssh -o StrictHostKeyChecking=accept-new -i ~/.ssh/id_deploiement "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "set -e; docker pull ${IMAGE}:${GITHUB_SHA}; docker rm -f api-retour-emploi 2>/dev/null || true; \
+             docker run -d --name api-retour-emploi --restart unless-stopped -p 8000:8000 ${IMAGE}:${GITHUB_SHA}; \
+             sleep 5; curl --fail --silent http://localhost:8000/health"
+          echo "OK - deploiement effectue sur ${DEPLOY_HOST}"
+
+      # Sans serveur configure, l'image PUBLIEE est redeployee sur le runner et testee de
+      # bout en bout : c'est un deploiement de recette, pas une mise en production.
+      - name: Deploiement de recette sur le runner
+        if: env.DEPLOY_HOST == ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          nettoyer() { docker logs api-recette 2>/dev/null || true; docker rm -f api-recette 2>/dev/null || true; }
+          trap nettoyer EXIT
+          docker pull "${IMAGE}:${GITHUB_SHA}"
+          docker run -d --name api-recette -p 8000:8000 "${IMAGE}:${GITHUB_SHA}"
+          pret=0
+          for tentative in $(seq 1 30); do
+            if curl --fail --silent http://localhost:8000/health; then pret=1; break; fi
+            sleep 2
+          done
+          if [ "$pret" -ne 1 ]; then echo "ERREUR - /health ne repond pas."; exit 1; fi
+          echo
+          curl --fail --silent --show-error -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{"age": 45, "niveau_diplome": "Bac", "date_debut_poste": "2016-03-01", "code_rome_vise": "M1607", "code_insee_commune": "07240", "est_allocataire": 1, "synthese_entretien": "Cumul de difficultés. Pas de moyen de transport."}'
+          echo
+          echo "OK - image publiee deployee en recette et testee (/health puis /predict)."
