@@ -93,19 +93,19 @@ Remplacer le chemin d'exemple par le chemin reel du projet.
 Cette commande ne doit etre executee que lors de la premiere installation :
 
 ```bat
-conda create --name cisia-ia python=3.12 pip -y
+conda create --name certification-cisia python=3.12 pip -y
 ```
 
 ### 3. Activer l'environnement
 
 ```bat
-conda activate cisia-ia
+conda activate certification-cisia
 ```
 
 Le debut de l'invite de commandes doit afficher :
 
 ```text
-(cisia-ia)
+(certification-cisia)
 ```
 
 ### 4. Installer Jupyter et le noyau du projet
@@ -113,13 +113,13 @@ Le debut de l'invite de commandes doit afficher :
 Le fichier `requirements-dev.txt` contient les dependances de test et d'analyse du projet, mais Jupyter doit etre installe explicitement dans l'environnement Conda :
 
 ```bat
-conda install -n cisia-ia -c conda-forge jupyterlab notebook ipykernel graphviz -y
+conda install -ncertification-cisia -c conda-forge jupyterlab notebook ipykernel graphviz -y
 ```
 
 Enregistrer ensuite l'environnement comme noyau Jupyter :
 
 ```bat
-python -m ipykernel install --user --name cisia-ia --display-name "Python 3.12 - CISIA IA"
+python -m ipykernel install --user --name certification-cisia --display-name "Python 3.12 - CISIA IA"
 ```
 
 Le noyau visible dans Jupyter portera le nom :
@@ -150,7 +150,7 @@ python --version
 where python
 ```
 
-Le premier chemin retourne par `where python` doit correspondre a l'environnement `cisia-ia`.
+Le premier chemin retourne par `where python` doit correspondre a l'environnement `certification-cisia`.
 
 Verifier les principales bibliotheques :
 
@@ -165,7 +165,7 @@ python -c "import fastapi, pydantic, sklearn, xgboost, mlflow, pandas, numpy, sc
 Dans Anaconda Prompt :
 
 ```bat
-conda activate cisia-ia
+conda activate certification-cisia
 ```
 
 ### 2. Revenir a la racine du projet
@@ -214,7 +214,7 @@ print(sys.executable)
 print(sys.version)
 ```
 
-Le chemin affiche doit correspondre a l'environnement Conda `cisia-ia`.
+Le chemin affiche doit correspondre a l'environnement Conda `certification-cisia`.
 
 ### 6. Acceder aux fichiers de `src/` depuis le Notebook
 
@@ -260,7 +260,7 @@ Toutes les commandes applicatives doivent etre executees depuis `src/`.
 ### 1. Activer l'environnement et entrer dans `src/`
 
 ```bat
-conda activate cisia-ia
+conda activate certification-cisia
 cd C:\chemin\vers\certification-cisia-atlas\src
 ```
 
@@ -359,7 +359,7 @@ L'interface permet de saisir un usager, d'obtenir une prediction, d'afficher les
 Ouvrir une deuxieme fenetre Anaconda Prompt :
 
 ```bat
-conda activate cisia-ia
+conda activate certification-cisia
 cd C:\chemin\vers\certification-cisia-atlas\src
 mlflow ui --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5000
 ```
@@ -375,7 +375,7 @@ Il ne faut pas recreer l'environnement Conda a chaque utilisation.
 ### Pour travailler dans Jupyter
 
 ```bat
-conda activate cisia-ia
+conda activate certification-cisia
 cd C:\chemin\vers\certification-cisia-atlas
 jupyter lab
 ```
@@ -383,7 +383,7 @@ jupyter lab
 ### Pour lancer l'API
 
 ```bat
-conda activate cisia-ia
+conda activate certification-cisia
 cd C:\chemin\vers\certification-cisia-atlas\src
 uvicorn api:app --reload
 ```
@@ -391,7 +391,7 @@ uvicorn api:app --reload
 ### Pour relancer les tests
 
 ```bat
-conda activate cisia-ia
+conda activate certification-cisia
 cd C:\chemin\vers\certification-cisia-atlas\src
 pytest tests -v
 ```
@@ -573,7 +573,7 @@ Le pipeline realise notamment :
 ### Verification depuis Anaconda Prompt
 
 ```bat
-conda activate cisia-ia
+conda activate certification-cisia
 cd C:\chemin\vers\certification-cisia-atlas\src
 python -m py_compile api.py entrainer_modele.py verifier_seuil_performance.py tests\test_api.py
 python -c "import api; import entrainer_modele; import verifier_seuil_performance"
