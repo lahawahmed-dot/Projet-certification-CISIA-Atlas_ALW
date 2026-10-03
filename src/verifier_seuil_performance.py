@@ -1,8 +1,8 @@
 """
 verifier_seuil_performance.py
 ==============================
-Garde-fou de qualité et d'équité (pattern « challenger / champion ») : refuse de laisser
-passer un modèle dont les performances — ou l'équité entre groupes — tombent sous un
+Garde-fou de qualité  : refuse de laisser
+passer un modèle dont les performances tombent sous un
 seuil minimal acceptable.
 
 Sans ce script, `entrainer_modele.py` réussirait TOUJOURS (code de sortie 0), même si le
@@ -12,14 +12,14 @@ inaperçus et pourraient être déployés sans que personne ne s'en rende compte
 usager en subisse les conséquences.
 
 Le plancher de F1-macro par défaut (0,68) est volontairement le MÊME que celui utilisé
-comme contrainte dans la règle de sélection du modèle (notebook, § 8) : ce qui a
+comme contrainte dans la règle de sélection du modèle  : ce qui a
 servi à choisir le modèle est ce qui sert à autoriser sa promotion.
 
 Limite méthodologique assumée : les métriques vérifiées ici sont celles produites par
 `entrainer_modele.py` sur le jeu de TEST. À chaque exécution du pipeline, ce jeu joue donc
 de fait le rôle d'un jeu de validation. En production, ce contrôle doit porter sur un jeu
 de validation dédié, distinct du jeu de test de référence conservé pour l'évaluation
-finale — sans quoi le test perd progressivement son indépendance.
+finale.
 
 Usage :
     python verifier_seuil_performance.py --f1-macro-min 0.68 --erreur-critique-max 0.15

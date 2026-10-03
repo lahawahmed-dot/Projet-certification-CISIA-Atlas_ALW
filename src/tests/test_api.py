@@ -20,13 +20,6 @@ from fastapi.testclient import TestClient
 @pytest.fixture(scope="module", autouse=True)
 def journaux_isoles(tmp_path_factory):
     """Isole les écritures des tests dans un répertoire temporaire.
-
-    Sans cela, chaque exécution de la suite ajoute des lignes de test au journal réel — or
-    ce journal contient des données personnelles et sert de trace probatoire (README,
-    section « Responsabilité juridique »). Des enregistrements de test n'ont rien à y faire.
-    Les variables d'environnement sont posées AVANT l'import de `api`, car le module lit ses
-    chemins au chargement : c'est la raison pour laquelle `api` est importé dans la fixture
-    `client` et non en tête de fichier.
     """
     dossier = tmp_path_factory.mktemp("journaux")
     os.environ["FICHIER_JOURNAL"] = str(dossier / "journal_requetes.jsonl")

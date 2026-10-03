@@ -1,27 +1,6 @@
 """
 entrainer_modele.py
 ====================
-Script autonome d'entraînement du modèle retenu dans le notebook :
-XGBoost, Scénario 2 (sans variable sensible), seuil de décision à 0,20 sur P(classe = 2).
-
-Le couple (modèle, seuil) a été choisi en validation croisée sur le jeu d'entraînement,
-avec la règle « minimiser le taux d'erreur critique (vrais 2 prédits 0) sous contrainte
-d'un F1-macro >= 0,68 » (notebook, § 8). Ce plancher est le même que celui du garde-fou
-de la CI (verifier_seuil_performance.py) : la règle qui choisit et la règle qui autorise
-la mise en production sont identiques.
-
-Le notebook n'enregistre pas lui-même le modèle : il exécute ce script, puis vérifie que
-le modèle produit donne exactement les mêmes probabilités que le sien. Il n'existe donc
-qu'une seule implémentation du prétraitement pour l'entraînement.
-
-Usage :
-    python entrainer_modele.py                                   # champion
-    python entrainer_modele.py --sortie artefacts_candidat --avec-feedback   # challenger
-
-Produit dans <sortie>/ :
-    modele_xgboost.joblib, onehot_encoder.joblib, tfidf_vectorizer.joblib,
-    parametres_imputation.joblib, metriques.json, run_mlflow.json
-et une run MLflow (MLFLOW_TRACKING_URI, par défaut sqlite:///mlflow.db).
 """
 import argparse
 import hashlib
@@ -30,6 +9,7 @@ import os
 import re
 import sys
 import warnings
+from pathlib import Path
 
 import joblib
 import mlflow
@@ -54,7 +34,9 @@ CHEMIN_DONNEES = os.environ.get("CHEMIN_DONNEES", "dataset_trajectoire_emploi.cs
 DOSSIER_ARTEFACTS = os.environ.get("DOSSIER_ARTEFACTS", "artefacts_modele")
 FICHIER_JOURNAL = os.environ.get("FICHIER_JOURNAL", "journal_requetes.jsonl")
 FICHIER_FEEDBACK = os.environ.get("FICHIER_FEEDBACK", "feedback_reentrainement.jsonl")
-MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
+DOSSIER_SRC = Path(__file__).resolve().parent # = ...\certification_cisia_atlas\src
+MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI",f"sqlite:///{(DOSSIER_SRC / 'mlflow.db').as_posix()}")
+#MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
 SEUIL_CLASSE2 = 0.20
 VERSION_MODELE = "xgboost_scenario2_v2"
 GRAINE = 42
